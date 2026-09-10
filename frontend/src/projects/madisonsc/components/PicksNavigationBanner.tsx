@@ -7,7 +7,7 @@ type PicksNavigationBannerProps = {
 
 function yearLabel(year: number) {
   const seasonStartYear = year + 2013;
-  return `Year ${year} (${seasonStartYear}-${seasonStartYear + 1})`;
+  return `Year ${year} (${seasonStartYear})`;
 }
 
 export default function PicksNavigationBanner({ year, week }: PicksNavigationBannerProps) {
@@ -16,7 +16,7 @@ export default function PicksNavigationBanner({ year, week }: PicksNavigationBan
   return (
     <nav className="picks-navigation-banner" aria-label="Madison SC picks navigation">
       <h1>
-        <strong>Madison SC</strong>
+        <Link to="/madisonsc">Madison SC</Link>
         <span className="picks-navigation-separator" aria-hidden="true">»</span>
         {week == null ? (
           <span aria-current="page">{label}</span>

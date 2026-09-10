@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getYearlyPicks } from '../api';
-import PicksNavigationBanner from '../components/PicksNavigationBanner';
-import type { PickRecord, WeeklyContestant, WeeklyPick, YearlyPicksResponse } from '../types';
-import '../styles.css';
+import { getYearlyPicks } from '../../api';
+import PicksNavigationBanner from '../../components/PicksNavigationBanner';
+import type { PickRecord, WeeklyContestant, WeeklyPick, YearlyPicksResponse } from '../../types';
+import '../../styles.css';
 
 const pickSlots = Array.from({ length: 5 }, (_, index) => index);
 

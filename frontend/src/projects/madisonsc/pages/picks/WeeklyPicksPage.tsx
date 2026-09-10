@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getWeeklyPicks } from '../api';
-import PicksNavigationBanner from '../components/PicksNavigationBanner';
-import type { PickRecord, WeeklyPick, WeeklyPicksResponse } from '../types';
-import '../styles.css';
+import { getWeeklyPicks } from '../../api';
+import PicksNavigationBanner from '../../components/PicksNavigationBanner';
+import type { PickRecord, WeeklyPick, WeeklyPicksResponse } from '../../types';
+import '../../styles.css';
 
 function formatRecord(record: PickRecord) {
   return `${record.wins}-${record.losses}-${record.ties}`;

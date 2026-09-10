@@ -5,14 +5,17 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import xyz.raymoore.madisonsc.domain.Contestant;
 import xyz.raymoore.madisonsc.domain.Pick;
 import xyz.raymoore.madisonsc.dto.query.LatestWeekResponse;
+import xyz.raymoore.madisonsc.dto.query.RootResponse;
 import xyz.raymoore.madisonsc.dto.query.WeeklyPicksResponse;
 import xyz.raymoore.madisonsc.dto.query.YearlyPicksResponse;
 import xyz.raymoore.madisonsc.repository.ContestantRepository;
@@ -38,6 +41,46 @@ public class PickQueryService {
                         .week(pick.week())
                         .build())
                 .orElseGet(() -> LatestWeekResponse.builder().build());
+    }
+
+    public RootResponse findRootSummary() {
+        List<Pick> picks = pickRepository.findAllForStandings();
+        Map<UUID, Contestant> contestantsById = loadContestants(picks);
+        Map<Integer, List<Pick>> picksByYear = picks.stream()
+                .collect(Collectors.groupingBy(Pick::year, LinkedHashMap::new, Collectors.toList()));
+        List<RootResponse.YearView> years = new ArrayList<>();
+
+        for (Map.Entry<Integer, List<Pick>> entry : picksByYear.entrySet()) {
+            int year = entry.getKey();
+            List<Pick> yearPicks = entry.getValue();
+            int latestWeek = yearPicks.stream().mapToInt(Pick::week).max().orElseThrow();
+            List<RootResponse.StandingView> standings = buildContestantViews(
+                    yearPicks,
+                    contestantsById,
+                    latestWeek
+            ).stream()
+                    .map(contestant -> RootResponse.StandingView.builder()
+                            .contestantId(contestant.contestantId())
+                            .name(contestant.name())
+                            .rank(contestant.rank())
+                            .cumulativeWinPercentage(contestant.cumulativeWinPercentage())
+                            .cumulativeRecord(RootResponse.RecordView.builder()
+                                    .wins(contestant.cumulativeRecord().wins())
+                                    .losses(contestant.cumulativeRecord().losses())
+                                    .ties(contestant.cumulativeRecord().ties())
+                                    .build())
+                            .build())
+                    .toList();
+
+            years.add(RootResponse.YearView.builder()
+                    .year(year)
+                    .seasonLabel(seasonLabel(year))
+                    .latestWeek(latestWeek)
+                    .standings(standings)
+                    .build());
+        }
+
+        return RootResponse.builder().years(List.copyOf(years)).build();
     }
 
     public WeeklyPicksResponse findWeeklyPicks(int year, int week) {
@@ -123,7 +166,13 @@ public class PickQueryService {
     ) {
         List<Candidate> candidates = new ArrayList<>();
 
-        for (Contestant contestant : contestantsById.values()) {
+        List<UUID> yearContestantIds = yearPicks.stream().map(Pick::contestantId).distinct().toList();
+        for (UUID contestantId : yearContestantIds) {
+            Contestant contestant = contestantsById.get(contestantId);
+            if (contestant == null) {
+                continue;
+            }
+
             List<Pick> contestantPicks = yearPicks.stream()
                     .filter(pick -> pick.contestantId().equals(contestant.contestantId()))
                     .toList();

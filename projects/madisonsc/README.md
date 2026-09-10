@@ -4,7 +4,7 @@
 
 Build an NFL pick'em league tracker for weekly picks against the spread, results, and cumulative standings as a project within the raymoore.xyz personal website. It will replace the existing Madison SC website.
 
-This is the implementation plan for AI coding agents. The database foundation is implemented with Flyway V1, mapped `Contestant` and `Pick` Java records in `xyz.raymoore.madisonsc.domain`, repositories, and Spring MVC latest-week/weekly-picks endpoints. The React frontend resolves `/madisonsc` through the latest-week API, navigates to the populated weekly route, and renders responsive standings cards or an explicit empty state. The secret-protected administrator submission API is implemented. Proposed API contracts and unresolved business rules are labeled explicitly.
+This is the implementation plan for AI coding agents. The database foundation is implemented with Flyway V1, mapped `Contestant` and `Pick` Java records in `xyz.raymoore.madisonsc.domain`, repositories, and Spring MVC root-summary/latest-week/annual-picks/weekly-picks endpoints. The React frontend renders `/madisonsc` as a year-summary page, resolves `/madisonsc/picks/latest` through the latest-week API, and provides responsive annual and weekly standings views. The secret-protected administrator submission API is implemented. Proposed API contracts and unresolved business rules are labeled explicitly.
 
 The [root PROJECT.md](../../PROJECT.md) owns shared technologies, application architecture, authentication strategy, database migration conventions, and site navigation. This file owns Madison SC business requirements, its database schema, routes, UI behavior, and acceptance criteria. Read [AGENTS.md](../../AGENTS.md) for collaboration guidance and [README.md](../../README.md) for developer setup and day-to-day workflows. Keep these documents consistent as decisions are made.
 
@@ -84,11 +84,13 @@ Keep contestant data and operational pick/result changes separate from Flyway sc
 
 ## HTTP API and browser routes
 
-Retain the existing administrator submission header and shorthand body for the proof of concept. Unlike the archived Javalin route, the Spring endpoint lives under `/api` because it exchanges JSON rather than rendering the React route. The public latest-week and weekly-picks APIs and administrator submission API are implemented.
+Retain the existing administrator submission header and shorthand body for the proof of concept. Unlike the archived Javalin route, the Spring endpoint lives under `/api` because it exchanges JSON rather than rendering the React route. The public root-summary, latest-week, annual-picks, and weekly-picks APIs and administrator submission API are implemented.
 
 | Method | Path | Purpose / intended access |
 | --- | --- | --- |
-| GET | `/madisonsc` | React landing page. It asks the public API for the latest year/week and displays that week's data, or an explicit empty state. |
+| GET | `/madisonsc` | React root page showing each competition year's final standings through its latest populated week. |
+| GET | `/api/madisonsc` | Public root-summary data, with years ordered newest-first and each year's latest populated week and final cumulative ranks. |
+| GET | `/madisonsc/picks/latest` | React redirect page that finds and navigates to the latest populated week, or displays an explicit empty state. |
 | GET | `/api/madisonsc/picks/latest` | Public latest-week lookup, returning the maximum `year`/`week` with pick entries or an empty result. |
 | GET | `/madisonsc/picks/{year}` | React annual view with compact snapshots for Weeks 1–18. |
 | GET | `/api/madisonsc/picks/{year}` | Public annual view data, including each week's cumulative standings. |
@@ -98,7 +100,9 @@ Retain the existing administrator submission header and shorthand body for the p
 
 The JSON GET and POST intentionally use the same `/api/madisonsc/picks/{year}/{week}` resource and are distinguished by HTTP method. The React browser route remains separate under `/madisonsc`. There are no contestant CRUD, result PATCH, or `/api/auth/me` endpoints in the initial scope.
 
-### Madison SC landing page
+### Madison SC root and latest-week pages
+
+`GET /api/madisonsc` is implemented by `RootController` through `PickQueryService`. It returns every competition year that has picks, newest-first. Each year contains its season label, latest populated week, and the contestant names, cumulative competition ranks, cumulative W-L-T records, and cumulative win percentages calculated through that week. The React `/madisonsc` page renders one card per year, displays medal emoji for the top three ranks, and links each `Year N` card header to `/madisonsc/picks/{year}`. An empty database produces a clear empty state.
 
 `GET /api/madisonsc/picks/latest` runs this query against the singular table `madisonsc.pick`:
 
@@ -109,7 +113,7 @@ ORDER BY year DESC, week DESC
 LIMIT 1;
 ```
 
-Return JSON containing the selected `year` and `week`, or `{"year": null, "week": null}` when no picks exist. The maximum competition year/week determines the selected week, not the newest insertion timestamp, current calendar date, or whether results are complete. Backfilling an older week must not move the selected week backward. The React `/madisonsc` page replaces its browser-history entry with `/madisonsc/picks/{year}/{week}` when a latest week exists; an empty result renders a clear “No picks found” state with the shared navigation. A dashboard or season-selection landing page may be added later.
+Return JSON containing the selected `year` and `week`, or `{"year": null, "week": null}` when no picks exist. The maximum competition year/week determines the selected week, not the newest insertion timestamp, current calendar date, or whether results are complete. Backfilling an older week must not move the selected week backward. The React `/madisonsc/picks/latest` page replaces its browser-history entry with `/madisonsc/picks/{year}/{week}` when a latest week exists; an empty result renders a clear “No picks found” state with the shared navigation.
 
 ### Administrator pick submission
 
@@ -160,13 +164,13 @@ The `madisonsc` schema belongs to this project within the shared `raymoorexyz` d
 
 ## Frontend organization and navigation
 
-Use the shared React/TypeScript conventions, `SiteLayout`, and `SiteNavigation` from the root plan.
+Use the shared React/TypeScript conventions and `HamburgerMenu` from the root plan.
 
-- Put Madison SC pages in `frontend/src/projects/madisonsc/pages/`, API calls in `api.ts`, shared API types in `types.ts`, and project components in `frontend/src/projects/madisonsc/components/` when needed. The latest-week landing page is `LatestWeekPage.tsx`; suggested weekly components are `WeekNavigation`, `ContestantCard`, `RecordSummary`, and `PickCard`. Shared application pages and components belong under `frontend/src/app/`.
-- Put backend code under `backend/src/main/java/xyz/raymoore/madisonsc/`, organized into `category`, `controller`, `service`, `domain`, `repositorye`, and `dto` as needed. Put fixed project values such as `Team` in `category`, mapped records in `domain`, and repository interfaces and classes in `repository`. Group public read contracts in `dto.query` and administrator pick-submission contracts in `dto.submission`, following the shared package and inner `Builder` conventions in `PROJECT.md`. Keep typed API calls and team/result types aligned with the backend contract.
-- Define React routes for `/madisonsc`, `/madisonsc/picks/:year`, and `/madisonsc/picks/:year/:week`. Use relative API paths such as `/api/madisonsc/picks/13` and `/api/madisonsc/picks/13/1` through Vite's `/api` proxy during development.
-- The shared Madison SC link points to `/madisonsc`. React calls the latest-week API, then loads the selected weekly data. A normal navigation link also works on a direct browser visit.
-- Put a shared, centered breadcrumb banner above both picks views. The annual view displays `Madison SC » Year 12 (2025-2026)`, with the current year bold and neither segment linked. The weekly view adds a bold selected week and links only its year segment back to the annual view, such as `Madison SC » Year 12 (2025-2026) » Week 4`. Keep `Madison SC` and the current week non-clickable. Madison SC links use distinct blue text without underlines, including the linked year and annual week-card headers. Year selection and a separate selection dashboard are deferred.
+- Put `RootPage.tsx` in `frontend/src/projects/madisonsc/pages/` and put `LatestWeekPage.tsx`, `YearlyPicksPage.tsx`, and `WeeklyPicksPage.tsx` in its `pages/picks/` subfolder. Keep API calls in `api.ts`, shared API types in `types.ts`, and project components in `frontend/src/projects/madisonsc/components/` when needed. Shared application pages and components belong under `frontend/src/app/`.
+- Put backend code under `backend/src/main/java/xyz/raymoore/madisonsc/`, organized into `category`, `controller`, `service`, `domain`, `repository`, and `dto` as needed. Put fixed project values such as `Team` in `category`, mapped records in `domain`, and repository interfaces and classes in `repository`. Group public read contracts in `dto.query` and administrator pick-submission contracts in `dto.submission`, following the shared package and inner `Builder` conventions in `PROJECT.md`. Keep typed API calls and team/result types aligned with the backend contract.
+- Define React routes for `/madisonsc`, `/madisonsc/picks/latest`, `/madisonsc/picks/:year`, and `/madisonsc/picks/:year/:week`. Use relative API paths such as `/api/madisonsc`, `/api/madisonsc/picks/13`, and `/api/madisonsc/picks/13/1` through Vite's `/api` proxy during development.
+- The shared Madison SC hamburger-menu link points to `/madisonsc/picks/latest`. The root summary remains directly navigable at `/madisonsc`.
+- Put a shared, centered breadcrumb banner above both picks views. The annual view displays `Madison SC » Year 12 (2025)`, with `Madison SC` linking to the root summary and the current year shown in bold, nonlinked text. The weekly view adds a bold selected week and links its year segment back to the annual view, such as `Madison SC » Year 12 (2025) » Week 4`. Keep the current week non-clickable. Madison SC links use distinct blue text without underlines, including the root, linked year, and annual week-card headers. Year selection is deferred.
 - Show “Year 12 has been suspended in loving memory of Reyna” in a visually distinct memorial banner on every Year 12 weekly view, matching the archived site's year-specific behavior.
 - Show the same Reyna memorial banner on the Year 12 annual view.
 - Render the annual view as a responsive grid of 18 compact week cards. Link each week-card header to that week's detailed view. Within each card, put every contestant on one row ordered by cumulative win percentage through that week. Show the medal-prefixed name, cumulative record, weekly record, and five fixed pick cells. Fill unused cells with an empty marker; show only the team code without logos or spreads in populated cells, using green for wins, yellow for ties, red for losses, and gray for pending results. Protect the full W-L-T record values as the card narrows, allowing the other columns to compress first.
@@ -184,8 +188,9 @@ Apply the shared test tooling and delivery checks in the root plan, with these M
 - Cover PK rendering with both NULL and false directions.
 - Test administrator POST requests with valid, missing, invalid, and unconfigured secrets. Verify one invalid pick cannot leave a partially inserted batch, incremental batches can reach five total picks, a batch cannot exceed that total, and historical backfill remains allowed. Google-login tests belong to the later phase.
 - Use Vitest and React Testing Library for request failures, empty weeks, medal display for the top three ranks, and integration with shared navigation.
-- Verify `/madisonsc` loads through both Vite and the packaged app, requests the latest year/week through the API, renders the selected weekly data, and handles an empty database. Use test fixtures with different insertion and competition-year/week orderings; the selected week must remain data-driven as new picks arrive.
-- Verify direct navigation and refresh for historical weekly routes, and confirm administrator POST requests receive JSON instead of the SPA fallback.
+- Verify `/madisonsc` loads through both Vite and the packaged app, renders newest-first year summaries using each year's latest populated week, links to every annual view, and handles an empty database.
+- Verify `/madisonsc/picks/latest` requests the latest year/week through the API, renders the selected weekly data, and handles an empty database. Use test fixtures with different insertion and competition-year/week orderings; the selected week must remain data-driven as new picks arrive.
+- Verify direct navigation and refresh for root, latest, annual, and historical weekly routes, and confirm administrator POST requests receive JSON instead of the SPA fallback.
 
 ## Remaining decisions
 

@@ -1,8 +1,9 @@
 import HomePage from './app/pages/HomePage';
-import LatestWeekPage from './projects/madisonsc/pages/LatestWeekPage';
-import WeeklyPicksPage from './projects/madisonsc/pages/WeeklyPicksPage';
-import YearlyPicksPage from './projects/madisonsc/pages/YearlyPicksPage';
-import NavigationBar from './app/components/NavigationBar';
+import HamburgerMenu from './app/components/HamburgerMenu';
+import RootPage from './projects/madisonsc/pages/RootPage';
+import LatestWeekPage from './projects/madisonsc/pages/picks/LatestWeekPage';
+import WeeklyPicksPage from './projects/madisonsc/pages/picks/WeeklyPicksPage';
+import YearlyPicksPage from './projects/madisonsc/pages/picks/YearlyPicksPage';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 function NotFoundPage() {
@@ -17,10 +18,11 @@ function NotFoundPage() {
 export default function App() {
   return (
     <BrowserRouter>
-      <NavigationBar />
+      <HamburgerMenu />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/madisonsc" element={<LatestWeekPage />} />
+        <Route path="/madisonsc" element={<RootPage />} />
+        <Route path="/madisonsc/picks/latest" element={<LatestWeekPage />} />
         <Route path="/madisonsc/picks/:year" element={<YearlyPicksPage />} />
         <Route path="/madisonsc/picks/:year/:week" element={<WeeklyPicksPage />} />
         <Route path="*" element={<NotFoundPage />} />

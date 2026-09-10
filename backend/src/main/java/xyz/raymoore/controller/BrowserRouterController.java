@@ -11,6 +11,7 @@ public class BrowserRouterController {
     @GetMapping({
             "/",
             "/madisonsc",
+            "/madisonsc/picks/latest",
             "/madisonsc/picks/{year}",
             "/madisonsc/picks/{year}/{week}"
     })

@@ -6,7 +6,7 @@ The project is also a learning exercise in Spring Boot, React, TypeScript, and A
 
 ## Status
 
-The database foundation is implemented: local PostgreSQL through Docker Compose, Flyway migrations, and Spring Data JDBC domain records and repositories for contestants and picks. The Spring Boot application serves public latest-week, annual-picks, and weekly-picks endpoints plus a secret-protected administrator pick-submission endpoint. The React/TypeScript frontend has shared navigation, redirects `/madisonsc` to the latest populated week, and renders responsive annual and weekly standings views.
+The database foundation is implemented: local PostgreSQL through Docker Compose, Flyway migrations, and Spring Data JDBC domain records and repositories for contestants and picks. The Spring Boot application serves public Madison SC summary, latest-week, annual-picks, and weekly-picks endpoints plus a secret-protected administrator pick-submission endpoint. The React/TypeScript frontend has a shared hamburger menu and renders responsive year-summary, annual, and weekly standings views; `/madisonsc/picks/latest` redirects to the latest populated week.
 
 ## Developer prerequisites (macOS / Homebrew)
 
@@ -83,17 +83,19 @@ Open **http://localhost:5173/** in your browser. The page displays **Hello World
 | `index.html` | Browser HTML document containing the `root` element where React renders. |
 | `src/main.tsx` | Starts React, mounts `App` into that element, and imports the CSS. |
 | `src/App.tsx` | Top-level component; selects the current page and renders shared navigation. |
+| `src/app/components/HamburgerMenu.tsx` | Shared hamburger button and navigation drawer. |
 | `src/app/pages/HomePage.tsx` | Global home page returning the heading and paragraph. Edit the text here. |
-| `src/projects/madisonsc/pages/LatestWeekPage.tsx` | Madison SC landing page that finds and navigates to the latest populated week, or displays the empty state. |
-| `src/projects/madisonsc/pages/YearlyPicksPage.tsx` | Compact 18-week annual standings and picks view. |
-| `src/projects/madisonsc/pages/WeeklyPicksPage.tsx` | Weekly standings view with breadcrumb navigation and responsive contestant/pick cards. |
+| `src/projects/madisonsc/pages/RootPage.tsx` | Madison SC year-summary page with final cumulative ranks, records, and win percentages through each year's latest populated week. |
+| `src/projects/madisonsc/pages/picks/LatestWeekPage.tsx` | Finds and navigates to the latest populated week, or displays the empty state. |
+| `src/projects/madisonsc/pages/picks/YearlyPicksPage.tsx` | Compact 18-week annual standings and picks view. |
+| `src/projects/madisonsc/pages/picks/WeeklyPicksPage.tsx` | Weekly standings view with breadcrumb navigation and responsive contestant/pick cards. |
 | `src/projects/madisonsc/api.ts` | Fetch calls for Madison SC pick-query endpoints. |
 | `src/projects/madisonsc/types.ts` | TypeScript representations of Madison SC pick-query responses. |
 | `src/app/styles.css` | Shared CSS, including the responsive slide-out navigation. |
 | `tsconfig.json` | Enables strict TypeScript checking. |
 | `vite.config.ts` | Configures React support and the local server ports. |
 
-A **React component** is a function describing a piece of the UI. **JSX** is the HTML-like syntax returned by that function; React turns it into browser elements. A `.tsx` file is TypeScript that can contain JSX. **TypeScript** adds type checking to JavaScript during development; the browser receives JavaScript after the build. React Router handles navigation between `/`, `/madisonsc`, and weekly Madison SC URLs. The shared header identifies the current page, and its hamburger button opens the navigation drawer on desktop and mobile. The global home page itself still has no state or API calls and does not need a Spring controller. See [React's TypeScript introduction](https://react.dev/learn/typescript).
+A **React component** is a function describing a piece of the UI. **JSX** is the HTML-like syntax returned by that function; React turns it into browser elements. A `.tsx` file is TypeScript that can contain JSX. **TypeScript** adds type checking to JavaScript during development; the browser receives JavaScript after the build. React Router handles navigation between `/`, the `/madisonsc` summary, `/madisonsc/picks/latest`, and annual or weekly Madison SC URLs. The shared header identifies the current page, and its hamburger button opens the navigation drawer on desktop and mobile. The global home page itself still has no state or API calls and does not need a Spring controller. See [React's TypeScript introduction](https://react.dev/learn/typescript).
 
 ### Frontend verification and production build
 
@@ -193,7 +195,7 @@ The backend uses the following package convention within each subproject, includ
 | `category` | Fixed project-specific values used for validation and business logic. | `Team` |
 | `domain` | Database-mapped records representing stored data. | `Contestant`, `Pick` |
 | `repository` | Spring Data JDBC interfaces and JDBC-backed classes that read and write those records. | `ContestantRepository`, `PickRepository`, `PickSubmissionRepository` |
-| `dto.query` | Public read API response contracts. | `LatestWeekResponse`, `YearlyPicksResponse`, `WeeklyPicksResponse` |
+| `dto.query` | Public read API response contracts. | `RootResponse`, `LatestWeekResponse`, `YearlyPicksResponse`, `WeeklyPicksResponse` |
 | `dto.submission` | Administrator pick-submission API contracts. | `PickSubmissionRequest`, `PickSubmissionResponse` |
 
 `@SpringBootApplication` enables Spring's automatic configuration. Spring Data JDBC creates the implementation of `ContestantRepository` in `xyz.raymoore.madisonsc.repository`, which extends `ListCrudRepository<Contestant, UUID>`. Its inherited `findAll()` method generates a SELECT for all mapped columns and returns a `List<Contestant>`; no handwritten query is needed. `PickRepository` in the same package extends `ListCrudRepository<Pick, UUID>` for pick access. The `@Bean` method registers a `CommandLineRunner`: Spring supplies its repository argument and runs it after startup migrations finish.
@@ -280,7 +282,7 @@ In Render:
 3. Leave Build Command, Start Command, and Docker Command empty; Render uses the Dockerfile.
 4. Configure `DB_URL`, `DB_USER`, `DB_PASSWORD`, and `API_SECRET`. The container reads Render's `PORT` value and defaults to port 10000 when run elsewhere.
 5. Set the health check path to `/api/madisonsc/picks/latest` so readiness checks also verify database-backed reads.
-6. Deploy the selected commit. Verify `/`, `/madisonsc`, direct annual and weekly URLs, the latest-week JSON endpoint, and a missing `/api` route.
+6. Deploy the selected commit. Verify `/`, `/madisonsc`, `/madisonsc/picks/latest`, direct annual and weekly URLs, the root-summary and latest-week JSON endpoints, and a missing `/api` route.
 
 The initial production startup recorded baseline 0 and applied V1 successfully. Automatic baselining has since been removed from `application.yml`, restoring Flyway's default of `false` for subsequent deployments.
 

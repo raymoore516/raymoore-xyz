@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { getLatestWeek } from '../api';
-import type { LatestWeek } from '../types';
-import '../styles.css';
+import { getLatestWeek } from '../../api';
+import type { LatestWeek } from '../../types';
+import '../../styles.css';
 
 export default function LatestWeekPage() {
   const [latestWeek, setLatestWeek] = useState<LatestWeek | null>(null);

@@ -1,4 +1,4 @@
-import type { LatestWeek, WeeklyPicksResponse, YearlyPicksResponse } from './types';
+import type { LatestWeek, RootResponse, WeeklyPicksResponse, YearlyPicksResponse } from './types';
 
 const root = '/api/madisonsc';
 
@@ -8,6 +8,10 @@ async function getJson<T>(path: string, signal: AbortSignal): Promise<T> {
     throw new Error(`Request failed (${response.status})`);
   }
   return response.json() as Promise<T>;
+}
+
+export function getRootSummary(signal: AbortSignal): Promise<RootResponse> {
+  return getJson(root, signal);
 }
 
 export function getLatestWeek(signal: AbortSignal): Promise<LatestWeek> {

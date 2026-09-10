@@ -3,6 +3,21 @@ export type LatestWeek = {
   week: number | null;
 };
 
+export type RootResponse = {
+  years: Array<{
+    year: number;
+    seasonLabel: string;
+    latestWeek: number;
+    standings: Array<{
+      contestantId: string;
+      name: string;
+      rank: number;
+      cumulativeWinPercentage: number;
+      cumulativeRecord: PickRecord;
+    }>;
+  }>;
+};
+
 export type PickRecord = {
   wins: number;
   losses: number;

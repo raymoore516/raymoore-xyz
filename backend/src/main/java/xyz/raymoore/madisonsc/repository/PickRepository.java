@@ -15,6 +15,13 @@ public interface PickRepository extends ListCrudRepository<Pick, UUID> {
     @Query("""
             SELECT pick_id, entry_date, contestant_id, year, week, team, underdog, line, result
             FROM madisonsc.pick
+            ORDER BY year DESC, entry_date, pick_id
+            """)
+    List<Pick> findAllForStandings();
+
+    @Query("""
+            SELECT pick_id, entry_date, contestant_id, year, week, team, underdog, line, result
+            FROM madisonsc.pick
             ORDER BY year DESC, week DESC
             LIMIT 1
             """)

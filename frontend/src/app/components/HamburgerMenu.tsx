@@ -3,15 +3,21 @@ import { NavLink, useLocation } from 'react-router-dom';
 
 const pages = [
   { path: '/', label: 'Home' },
-  { path: '/madisonsc', label: 'Madison SC' },
+  { path: '/madisonsc/picks/latest', label: 'Madison SC' },
 ];
 
-export default function NavigationBar() {
+function isMadisonScPath(pathname: string) {
+  return pathname === '/madisonsc' || pathname.startsWith('/madisonsc/');
+}
+
+export default function HamburgerMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const drawer = useRef<HTMLDialogElement>(null);
   const { pathname } = useLocation();
   const currentPage = pages.find(({ path }) => (
-    path === '/' ? pathname === path : pathname === path || pathname.startsWith(`${path}/`)
+    path === '/'
+      ? pathname === path
+      : isMadisonScPath(pathname)
   ));
 
   function openMenu() {
@@ -75,7 +81,11 @@ export default function NavigationBar() {
                 key={path}
                 to={path}
                 end={path === '/'}
-                className={({ isActive }) => isActive ? 'active' : undefined}
+                className={({ isActive }) => (
+                  isActive || (path === '/madisonsc/picks/latest' && isMadisonScPath(pathname))
+                    ? 'active'
+                    : undefined
+                )}
                 onClick={closeMenu}
               >
                 {label}
