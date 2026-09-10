@@ -33,3 +33,12 @@ export type WeeklyPicksResponse = {
   availableYears: number[];
   contestants: WeeklyContestant[];
 };
+
+export type YearlyPicksResponse = {
+  year: number;
+  seasonLabel: string;
+  weeks: Array<{
+    week: number;
+    contestants: WeeklyContestant[];
+  }>;
+};

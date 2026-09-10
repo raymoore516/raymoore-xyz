@@ -1,6 +1,7 @@
 import HomePage from './app/pages/HomePage';
 import LatestWeekPage from './projects/madisonsc/pages/LatestWeekPage';
 import WeeklyPicksPage from './projects/madisonsc/pages/WeeklyPicksPage';
+import YearlyPicksPage from './projects/madisonsc/pages/YearlyPicksPage';
 import NavigationBar from './app/components/NavigationBar';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
@@ -20,6 +21,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/madisonsc" element={<LatestWeekPage />} />
+        <Route path="/madisonsc/picks/:year" element={<YearlyPicksPage />} />
         <Route path="/madisonsc/picks/:year/:week" element={<WeeklyPicksPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

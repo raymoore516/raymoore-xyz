@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { getWeeklyPicks } from '../api';
+import PicksNavigationBanner from '../components/PicksNavigationBanner';
 import type { PickRecord, WeeklyPick, WeeklyPicksResponse } from '../types';
 import '../styles.css';
-
-const weeks = Array.from({ length: 18 }, (_, index) => index + 1);
 
 function formatRecord(record: PickRecord) {
   return `${record.wins}-${record.losses}-${record.ties}`;
@@ -37,7 +36,6 @@ function rankMedal(rank: number) {
 }
 
 export default function WeeklyPicksPage() {
-  const navigate = useNavigate();
   const params = useParams();
   const year = Number(params.year);
   const week = Number(params.week);
@@ -76,38 +74,9 @@ export default function WeeklyPicksPage() {
     );
   }
 
-  const availableYears = data
-    ? Array.from(new Set([data.year, ...data.availableYears])).sort((left, right) => right - left)
-    : [year];
-
-  function selectYear(selectedYear: number) {
-    navigate(`/madisonsc/picks/${selectedYear}/${week}`);
-  }
-
-  function selectWeek(selectedWeek: number) {
-    navigate(`/madisonsc/picks/${year}/${selectedWeek}`);
-  }
-
   return (
     <main className="msc-page msc-weekly-picks-page">
-      <nav className="week-picker" aria-label="Choose Madison SC year and week">
-        <label>
-          <span>Year</span>
-          <select value={year} onChange={(event) => selectYear(Number(event.target.value))}>
-            {availableYears.map((availableYear) => (
-              <option key={availableYear} value={availableYear}>{availableYear}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span>Week</span>
-          <select value={week} onChange={(event) => selectWeek(Number(event.target.value))}>
-            {weeks.map((availableWeek) => (
-              <option key={availableWeek} value={availableWeek}>{availableWeek}</option>
-            ))}
-          </select>
-        </label>
-      </nav>
+      <PicksNavigationBanner year={year} week={week} />
 
       {year === 12 && (
         <aside className="reyna-memorial" role="note">

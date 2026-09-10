@@ -14,6 +14,7 @@ import xyz.raymoore.madisonsc.domain.Contestant;
 import xyz.raymoore.madisonsc.domain.Pick;
 import xyz.raymoore.madisonsc.dto.query.LatestWeekResponse;
 import xyz.raymoore.madisonsc.dto.query.WeeklyPicksResponse;
+import xyz.raymoore.madisonsc.dto.query.YearlyPicksResponse;
 import xyz.raymoore.madisonsc.repository.ContestantRepository;
 import xyz.raymoore.madisonsc.repository.PickRepository;
 
@@ -42,6 +43,45 @@ public class PickQueryService {
     public WeeklyPicksResponse findWeeklyPicks(int year, int week) {
         List<Pick> yearPicks = pickRepository.findByYear(year);
         Map<UUID, Contestant> contestantsById = loadContestants(yearPicks);
+        List<WeeklyPicksResponse.ContestantView> contestantViews = buildContestantViews(
+                yearPicks,
+                contestantsById,
+                week
+        );
+
+        return WeeklyPicksResponse.builder()
+                .year(year)
+                .week(week)
+                .seasonLabel(seasonLabel(year))
+                .availableYears(pickRepository.findAvailableYears())
+                .contestants(contestantViews)
+                .build();
+    }
+
+    public YearlyPicksResponse findYearlyPicks(int year) {
+        List<Pick> yearPicks = pickRepository.findByYear(year);
+        Map<UUID, Contestant> contestantsById = loadContestants(yearPicks);
+        List<YearlyPicksResponse.WeekView> weeks = new ArrayList<>();
+
+        for (int week = 1; week <= 18; week++) {
+            weeks.add(YearlyPicksResponse.WeekView.builder()
+                    .week(week)
+                    .contestants(buildContestantViews(yearPicks, contestantsById, week))
+                    .build());
+        }
+
+        return YearlyPicksResponse.builder()
+                .year(year)
+                .seasonLabel(seasonLabel(year))
+                .weeks(List.copyOf(weeks))
+                .build();
+    }
+
+    private List<WeeklyPicksResponse.ContestantView> buildContestantViews(
+            List<Pick> yearPicks,
+            Map<UUID, Contestant> contestantsById,
+            int week
+    ) {
         List<Candidate> candidates = buildCandidates(yearPicks, contestantsById, week);
         candidates.sort(candidateComparator());
 
@@ -60,14 +100,12 @@ public class PickQueryService {
             previousRank = rank;
         }
 
+        return List.copyOf(contestantViews);
+    }
+
+    private static String seasonLabel(int year) {
         int seasonStartYear = FIRST_SEASON_START_YEAR + year - 1;
-        return WeeklyPicksResponse.builder()
-                .year(year)
-                .week(week)
-                .seasonLabel(seasonStartYear + "\u2013" + (seasonStartYear + 1) + " NFL season")
-                .availableYears(pickRepository.findAvailableYears())
-                .contestants(List.copyOf(contestantViews))
-                .build();
+        return seasonStartYear + "-" + (seasonStartYear + 1) + " NFL season";
     }
 
     private Map<UUID, Contestant> loadContestants(List<Pick> picks) {

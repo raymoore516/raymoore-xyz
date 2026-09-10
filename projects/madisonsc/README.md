@@ -53,7 +53,7 @@ There are no required matchup, schedule, or team tables in the initial model. Ea
 
 ### Competition years and reference page
 
-`year` is the year of the competition, not a calendar year. Year 13 is the **2026–2027 NFL season**, and Year 11 is the **2024–2025 NFL season**. Use these labels consistently in navigation and page headings; keep the competition number in URLs and database rows. With continuous annual numbering, the display mapping is season start year = competition year + 2013. Do not use that mapping to infer the active week or reject historical submissions.
+`year` is the year of the competition, not a calendar year. Year 13 is the **2026-2027 NFL season**, and Year 11 is the **2024-2025 NFL season**. Use these labels consistently in navigation and page headings; keep the competition number in URLs and database rows. With continuous annual numbering, the display mapping is season start year = competition year + 2013. Do not use that mapping to infer the active week or reject historical submissions.
 
 The live [Year 11, Week 18 page](https://raymoore.xyz/madisonsc/picks/11/18) is a content reference: it displays week links 1–18, five picks per contestant, team logos, spreads, results, and weekly/cumulative records. Retain that information in the React design; the new shared navigation and medal indicators for the top three ranks are additional UI requirements.
 
@@ -90,6 +90,8 @@ Retain the existing administrator submission header and shorthand body for the p
 | --- | --- | --- |
 | GET | `/madisonsc` | React landing page. It asks the public API for the latest year/week and displays that week's data, or an explicit empty state. |
 | GET | `/api/madisonsc/picks/latest` | Public latest-week lookup, returning the maximum `year`/`week` with pick entries or an empty result. |
+| GET | `/madisonsc/picks/{year}` | React annual view with compact snapshots for Weeks 1–18. |
+| GET | `/api/madisonsc/picks/{year}` | Public annual view data, including each week's cumulative standings. |
 | GET | `/madisonsc/picks/{year}/{week}` | React weekly view. |
 | GET | `/api/madisonsc/picks/{year}/{week}` | Public weekly view data, including cumulative standings. |
 | POST | `/api/madisonsc/picks/{year}/{week}` | Administrator-only submission of one to five picks using `api-secret`; JSON response. |
@@ -134,6 +136,8 @@ Accept one to five picks per request, insert the submitted batch atomically, and
 
 The implemented weekly response includes `year`, `week`, season label, available competition years, and ordered contestant summaries containing ID, name, rank, cumulative win percentage, cumulative record, weekly record, and that week's picks. Records use numeric fields (`wins`, `losses`, `ties`) rather than only formatted strings. Spring calculates standings and React formats and displays them.
 
+The annual response includes `year`, season label, and all 18 week snapshots. Each snapshot uses the same cumulative-percentage ranking and contestant summary contract as the weekly response. The service loads a competition year's picks and contestants once, then derives every weekly cutoff from that shared data.
+
 ## Authentication and authorization
 
 Follow the [site authentication strategy in PROJECT.md](../../PROJECT.md). Public Madison SC pages and JSON reads require no login. Ray is the sole administrator.
@@ -160,10 +164,12 @@ Use the shared React/TypeScript conventions, `SiteLayout`, and `SiteNavigation` 
 
 - Put Madison SC pages in `frontend/src/projects/madisonsc/pages/`, API calls in `api.ts`, shared API types in `types.ts`, and project components in `frontend/src/projects/madisonsc/components/` when needed. The latest-week landing page is `LatestWeekPage.tsx`; suggested weekly components are `WeekNavigation`, `ContestantCard`, `RecordSummary`, and `PickCard`. Shared application pages and components belong under `frontend/src/app/`.
 - Put backend code under `backend/src/main/java/xyz/raymoore/madisonsc/`, organized into `category`, `controller`, `service`, `domain`, `repositorye`, and `dto` as needed. Put fixed project values such as `Team` in `category`, mapped records in `domain`, and repository interfaces and classes in `repository`. Group public read contracts in `dto.query` and administrator pick-submission contracts in `dto.submission`, following the shared package and inner `Builder` conventions in `PROJECT.md`. Keep typed API calls and team/result types aligned with the backend contract.
-- Define React routes for `/madisonsc` and `/madisonsc/picks/:year/:week`. Use relative API paths such as `/api/madisonsc/picks/13/1` through Vite's `/api` proxy during development.
+- Define React routes for `/madisonsc`, `/madisonsc/picks/:year`, and `/madisonsc/picks/:year/:week`. Use relative API paths such as `/api/madisonsc/picks/13` and `/api/madisonsc/picks/13/1` through Vite's `/api` proxy during development.
 - The shared Madison SC link points to `/madisonsc`. React calls the latest-week API, then loads the selected weekly data. A normal navigation link also works on a direct browser visit.
-- Keep historical navigation on the weekly view as controlled Year and Week dropdowns, separate from the global menu. The Year dropdown contains competition years with picks, plus a directly selected year when needed; the Week dropdown contains weeks 1–18. A separate selection dashboard is deferred.
+- Put a shared, centered breadcrumb banner above both picks views. The annual view displays `Madison SC » Year 12 (2025-2026)`, with the current year bold and neither segment linked. The weekly view adds a bold selected week and links only its year segment back to the annual view, such as `Madison SC » Year 12 (2025-2026) » Week 4`. Keep `Madison SC` and the current week non-clickable. Madison SC links use distinct blue text without underlines, including the linked year and annual week-card headers. Year selection and a separate selection dashboard are deferred.
 - Show “Year 12 has been suspended in loving memory of Reyna” in a visually distinct memorial banner on every Year 12 weekly view, matching the archived site's year-specific behavior.
+- Show the same Reyna memorial banner on the Year 12 annual view.
+- Render the annual view as a responsive grid of 18 compact week cards. Link each week-card header to that week's detailed view. Within each card, put every contestant on one row ordered by cumulative win percentage through that week. Show the medal-prefixed name, cumulative record, weekly record, and five fixed pick cells. Fill unused cells with an empty marker; show only the team code without logos or spreads in populated cells, using green for wins, yellow for ties, red for losses, and gray for pending results. Protect the full W-L-T record values as the card narrows, allowing the other columns to compress first.
 - Keep historical links such as `/madisonsc/picks/11/18` directly navigable and refreshable. Restrict the production SPA fallback to GET/HEAD UI requests; administrator submissions use the separate `/api` namespace.
 - Cancel or ignore stale requests when the selected year/week changes. Provide loading, error, empty, and success states, and textual result labels alongside colors. Retain team logos, spreads, results, and weekly/cumulative records from the reference page.
 - Use controlled inputs when adding the later Picks Submission page. Result-entry and contestant-management pages remain outside scope.

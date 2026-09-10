@@ -5,36 +5,59 @@
   font-family: Verdana, system-ui, sans-serif;
 }
 
+.msc-page a {
+  color: #0759a8;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.msc-page a:hover {
+  color: #033d75;
+}
+
+.msc-page a:focus-visible {
+  outline: 2px solid #0969da;
+  outline-offset: 2px;
+}
+
 .msc-page.msc-weekly-picks-page {
   max-width: 800px;
 }
 
-.msc-page .week-picker {
+.msc-page.msc-yearly-picks-page {
+  max-width: 90rem;
+}
+
+.msc-page .picks-navigation-banner {
   display: flex;
   justify-content: center;
-  gap: 1rem;
   margin: 0 0 1.5rem;
-  padding: 0.5rem;
+  padding: 0.75rem;
   font-size: 0.875rem;
   background: #e6f0ff;
   border-block: 1px solid #aab4c4;
 }
 
-.msc-page .week-picker label {
+.msc-page .picks-navigation-banner h1 {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0;
+  font: inherit;
+}
+
+.msc-page .picks-navigation-banner a {
   font-weight: 700;
 }
 
-.msc-page .week-picker select {
-  min-height: 2rem;
-  padding: 0.25rem 0.5rem 0.25rem 0.5rem;
-  color: #000a32;
-  font: inherit;
-  background: #fff;
-  border: 1px solid #000a32;
-  border-radius: 0.5rem;
+.msc-page .picks-navigation-banner [aria-current="page"] {
+  font-weight: 700;
+}
+
+.msc-page .picks-navigation-separator {
+  color: #57606a;
+  font-weight: 700;
 }
 
 .msc-page .reyna-memorial {
@@ -216,6 +239,147 @@
   text-align: center;
 }
 
+.msc-page .year-week-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(25rem, 100%), 1fr));
+  align-items: start;
+  gap: 1rem;
+}
+
+.msc-page .year-week-card {
+  min-width: 0;
+  overflow: hidden;
+  background: #fafaff;
+  border: 1px solid #000a32;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 16%);
+}
+
+.msc-page .year-week-card h2 {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1;
+  text-align: center;
+  background: #e6f0ff;
+  border-bottom: 1px solid #aab4c4;
+}
+
+.msc-page .year-week-card h2 a {
+  display: block;
+  padding: 0.5rem 0.625rem;
+}
+
+.msc-page .year-week-card h2 a:hover {
+  background: #d7e8ff;
+}
+
+.msc-page .year-week-table-scroll {
+  overflow-x: auto;
+}
+
+.msc-page .year-week-table {
+  width: 100%;
+  min-width: 22rem;
+  table-layout: fixed;
+  font-size: 0.625rem;
+  line-height: 1.15;
+  border-collapse: collapse;
+}
+
+.msc-page .year-name-column {
+  width: 5.5rem;
+}
+
+.msc-page .year-record-column {
+  width: 3.5rem;
+}
+
+.msc-page .year-pick-column {
+  width: auto;
+}
+
+.msc-page .year-week-table th,
+.msc-page .year-week-table td {
+  height: 1.9rem;
+  padding: 0.25rem 0.1875rem;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-right: 1px solid #d0d7de;
+  border-bottom: 1px solid #d0d7de;
+}
+
+.msc-page .year-week-table tr > :last-child {
+  border-right: 0;
+}
+
+.msc-page .year-week-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.msc-page .year-week-table thead th {
+  height: 1.5rem;
+  color: #57606a;
+  font-size: 0.5625rem;
+  text-transform: uppercase;
+  background: #f6f8fa;
+}
+
+.msc-page .year-week-table tbody th {
+  padding-left: 0.375rem;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  background: #fff;
+}
+
+.msc-page .year-record-cell {
+  font-variant-numeric: tabular-nums;
+  text-overflow: clip;
+  background: #fff;
+}
+
+.msc-page .year-pick-cell {
+  color: #24292f;
+  font-weight: 700;
+  background: linear-gradient(#f6f8fa, #eaeef2);
+}
+
+.msc-page .year-pick-cell.win {
+  color: #0a5c24;
+  background: linear-gradient(#efffef, #dafbe1);
+}
+
+.msc-page .year-pick-cell.loss {
+  color: #82071e;
+  background: linear-gradient(#fff1f0, #ffdad6);
+}
+
+.msc-page .year-pick-cell.tie {
+  color: #633c01;
+  background: linear-gradient(#fffbea, #fff1b8);
+}
+
+.msc-page .year-pick-cell.pending,
+.msc-page .year-pick-cell.empty {
+  color: #57606a;
+  background: linear-gradient(#f6f8fa, #eaeef2);
+}
+
+.msc-page .year-pick-cell.empty {
+  font-weight: 400;
+}
+
+.msc-page .year-week-empty {
+  min-height: 3rem;
+  margin: 0;
+  padding: 1rem;
+  color: #57606a;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
 @media (max-width: 48rem) {
   .msc-page {
     padding-inline: 0.5rem;
@@ -270,11 +434,22 @@
     font-size: 0.625rem;
     letter-spacing: 0.03em;
   }
-}
 
-@media (max-width: 30rem) {
-  .msc-page .week-picker {
-    gap: 0.5rem;
-    padding-inline: 0.625rem;
+  .msc-page .year-week-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .msc-page .year-week-table {
+    min-width: 20rem;
+    font-size: 0.5625rem;
+  }
+
+  .msc-page .year-name-column {
+    width: 4.5rem;
+  }
+
+  .msc-page .year-record-column {
+    width: 3.25rem;
   }
 }
