@@ -14,3 +14,7 @@ spring:
 
 app:
   api-secret: ${API_SECRET}
+
+project:
+  survivor:
+    spreadsheet-id: ${SURVIVOR_SPREADSHEET_ID}

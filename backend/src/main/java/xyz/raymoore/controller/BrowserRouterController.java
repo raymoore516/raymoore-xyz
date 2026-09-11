@@ -14,7 +14,8 @@ public class BrowserRouterController {
             "/madisonsc/picks/latest",
             "/madisonsc/picks/{year}",
             "/madisonsc/picks/{year}/{week}",
-            "/madisonsc/contestants/{contestant}/picks"
+            "/madisonsc/contestants/{contestant}/picks",
+            "/survivor"
     })
     public String serveReactApplication() {
         return "forward:/index.html";

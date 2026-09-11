@@ -18,6 +18,8 @@
     <properties>
         <java.version>25</java.version>
         <application.main-class>xyz.raymoore.App</application.main-class>
+        <google-api-services-sheets.version>v4-rev20260610-2.0.0</google-api-services-sheets.version>
+        <google-auth-library.version>1.52.0</google-auth-library.version>
     </properties>
 
     <dependencies>
@@ -46,6 +48,16 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-sheets</artifactId>
+            <version>${google-api-services-sheets.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.auth</groupId>
+            <artifactId>google-auth-library-oauth2-http</artifactId>
+            <version>${google-auth-library.version}</version>
         </dependency>
     </dependencies>
 

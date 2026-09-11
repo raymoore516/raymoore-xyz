@@ -1,12 +1,12 @@
 # raymoore.xyz
 
-A personal website project, starting with **Madison SC**, an NFL pick’em league tracker for weekly picks, results, and cumulative standings. This project will deprecate the existing Madison SC website.
+A personal website with **Madison SC**, an NFL pick’em league tracker, and **Survivor League**, a read-only view of weekly picks from Google Sheets. This project will deprecate the existing Madison SC website.
 
 The project is also a learning exercise in Spring Boot, React, TypeScript, and AI-assisted development.
 
 ## Status
 
-The database foundation is implemented: local PostgreSQL through Docker Compose, Flyway migrations, and Spring Data JDBC domain records and repositories for contestants and picks. The Spring Boot application serves public Madison SC summary, latest-week, annual-picks, weekly-picks, and contestant-picks endpoints plus a secret-protected administrator pick-submission endpoint. The React/TypeScript frontend has a shared hamburger menu and renders responsive year-summary, annual, weekly, and contestant-by-team views; `/madisonsc/picks/latest` redirects to the latest populated week.
+The database foundation is implemented: local PostgreSQL through Docker Compose, Flyway migrations, and Spring Data JDBC domain records and repositories for contestants and picks. The Spring Boot application serves public Madison SC summary, latest-week, annual-picks, weekly-picks, and contestant-picks endpoints plus a secret-protected administrator pick-submission endpoint. It also reads the current Survivor League entries and weekly picks from Google Sheets without storing them in PostgreSQL. The React/TypeScript frontend has a shared hamburger menu and responsive Madison SC and Survivor League views.
 
 ## Developer prerequisites (macOS / Homebrew)
 
@@ -85,6 +85,7 @@ Open **http://localhost:5173/** in your browser. The page displays **Hello World
 | `src/App.tsx` | Top-level component; selects the current page and renders shared navigation. |
 | `src/app/components/HamburgerMenu.tsx` | Shared hamburger button and navigation drawer. |
 | `src/app/pages/HomePage.tsx` | Global home page returning the heading and paragraph. Edit the text here. |
+| `src/projects/survivor/pages/SurvivorPage.tsx` | Survivor League week selector and active-contestant picks table. |
 | `src/projects/madisonsc/pages/RootPage.tsx` | Madison SC year-summary page with final cumulative ranks, records, and win percentages through each year's latest populated week. |
 | `src/projects/madisonsc/pages/contestants/ContestantPicksPage.tsx` | Contestant records grouped by all 32 NFL teams, all time, and recent competition years. |
 | `src/projects/madisonsc/pages/picks/LatestWeekPage.tsx` | Finds and navigates to the latest populated week, or displays the empty state. |
@@ -98,7 +99,7 @@ Open **http://localhost:5173/** in your browser. The page displays **Hello World
 | `tsconfig.json` | Enables strict TypeScript checking. |
 | `vite.config.ts` | Configures React support and the local server ports. |
 
-A **React component** is a function describing a piece of the UI. **JSX** is the HTML-like syntax returned by that function; React turns it into browser elements. A `.tsx` file is TypeScript that can contain JSX. **TypeScript** adds type checking to JavaScript during development; the browser receives JavaScript after the build. React Router handles navigation between `/`, the `/madisonsc` summary, `/madisonsc/picks/latest`, annual or weekly Madison SC URLs, and UUID-based contestant-picks URLs. The shared header identifies the current page, and its hamburger button opens the navigation drawer on desktop and mobile. The global home page itself still has no state or API calls and does not need a Spring controller. See [React's TypeScript introduction](https://react.dev/learn/typescript).
+A **React component** is a function describing a piece of the UI. **JSX** is the HTML-like syntax returned by that function; React turns it into browser elements. A `.tsx` file is TypeScript that can contain JSX. **TypeScript** adds type checking to JavaScript during development; the browser receives JavaScript after the build. React Router handles navigation between `/`, `/survivor`, the `/madisonsc` summary, `/madisonsc/picks/latest`, annual or weekly Madison SC URLs, and UUID-based contestant-picks URLs. The shared header identifies the current page, and its hamburger button opens the navigation drawer on desktop and mobile. The global home page itself still has no state or API calls and does not need a Spring controller. See [React's TypeScript introduction](https://react.dev/learn/typescript).
 
 ### Frontend verification and production build
 
@@ -112,7 +113,7 @@ npm run preview
 
 `typecheck` checks types without writing compiled files. `build` also runs that check, then produces deployable HTML, JavaScript, and CSS in `frontend/dist/`. Vite alone transpiles TypeScript without type-checking, so the separate check is intentional. `preview` serves the last build at **http://localhost:4173/**; rebuild after edits when using preview, and stop it with **Ctrl+C**. Preview is a local build check, not the production server. No frontend automated tests or lint command are configured in this initial scaffold.
 
-npm manages only `frontend/`; Maven continues to manage the Java backend. npm is used in local development and in the Docker build to install dependencies and build the static frontend. The Docker build packages those files into Spring Boot, so the running Java application does not need Node or npm. The backend serves public Madison SC JSON under `/api/madisonsc`, and Vite proxies `/api` from port 5173 to Spring Boot on port 8080 during development. The home page itself continues to need no database calls.
+npm manages only `frontend/`; Maven continues to manage the Java backend. npm is used in local development and in the Docker build to install dependencies and build the static frontend. The Docker build packages those files into Spring Boot, so the running Java application does not need Node or npm. The backend serves public Madison SC JSON under `/api/madisonsc` and Survivor League JSON at `/api/survivor`; Vite proxies `/api` from port 5173 to Spring Boot on port 8080 during development. The home page itself continues to need no database calls.
 
 ## Local developer setup: PostgreSQL on localhost:5432
 
@@ -128,9 +129,11 @@ PostgreSQL runs in a Docker container. You do not need a separate Postgres serve
    DB_PASSWORD='local-dev-password'
    DB_PORT=5432
    API_SECRET='local-dev-api-secret'
+   SURVIVOR_SPREADSHEET_ID='your-google-sheet-id'
+   GOOGLE_APPLICATION_CREDENTIALS='/absolute/path/to/service-account.json'
    ```
 
-   Set `DB_PASSWORD` and `API_SECRET` to your chosen local-only values. Keep them single-quoted so literal `$` characters are preserved; choose values without single quotes or backslashes for use with both Compose and the shell. `.env` is ignored by Git. `API_SECRET` protects administrator write requests and is not exposed to the React application. All values shown above are required: configuration files intentionally provide no inline environment-variable defaults, so a missing value fails fast instead of silently selecting a fallback.
+   Set `DB_PASSWORD` and `API_SECRET` to your chosen local-only values. Set `SURVIVOR_SPREADSHEET_ID` to the ID between `/d/` and `/edit` in the Google Sheet URL, and set `GOOGLE_APPLICATION_CREDENTIALS` to the absolute path of the downloaded service-account JSON file. Keep the values single-quoted so literal `$` characters are preserved; choose passwords without single quotes or backslashes for use with both Compose and the shell. `.env` is ignored by Git. `API_SECRET` protects administrator write requests and is not exposed to the React application. Share the Google Sheet with the service account's email address, and enable the Google Sheets API for its Google Cloud project. All values shown above are required: configuration files intentionally provide no inline environment-variable defaults, so a missing value fails fast instead of silently selecting a fallback.
 
    These example settings create database `raymoorexyz`, user `local-dev-user`, and expose Postgres only at `127.0.0.1:5432`. Change `DB_PORT` if port 5432 is already occupied.
 
@@ -201,7 +204,7 @@ The backend uses the following package convention within each subproject, includ
 | `dto.query` | Public read API response contracts. | `RootResponse`, `LatestWeekResponse`, `YearlyPicksResponse`, `WeeklyPicksResponse`, `ContestantPicksResponse` |
 | `dto.submission` | Administrator pick-submission API contracts. | `PickSubmissionRequest`, `PickSubmissionResponse` |
 
-`@SpringBootApplication` enables Spring's automatic configuration. Spring Data JDBC creates the implementation of `ContestantRepository` in `xyz.raymoore.madisonsc.repository`, which extends `ListCrudRepository<Contestant, UUID>`. Its inherited `findAll()` method generates a SELECT for all mapped columns and returns a `List<Contestant>`; no handwritten query is needed. `PickRepository` in the same package extends `ListCrudRepository<Pick, UUID>` for pick access. The `@Bean` method registers a `CommandLineRunner`: Spring supplies its repository argument and runs it after startup migrations finish.
+`@SpringBootApplication` enables Spring's automatic configuration. Spring Data JDBC creates the implementation of `ContestantRepository` in `xyz.raymoore.madisonsc.repository`, which extends `ListCrudRepository<Contestant, UUID>`. Its inherited `findAll()` method generates a SELECT for all mapped columns and returns a `List<Contestant>`; no handwritten query is needed. `PickRepository` in the same package extends `ListCrudRepository<Pick, UUID>` for pick access.
 
 `Contestant` and `Pick` are immutable Java records in `xyz.raymoore.madisonsc.domain`, mapped to V1 with `@Table`, `@Id`, and explicit `@Column` names where Java and SQL differ. They use `UUID`, `Instant`, and `BigDecimal` for the corresponding database types. `Pick.underdog` uses nullable `Boolean`, and `result` preserves the nullable database text. A pick references its contestant by UUID. These are database-mapped domain objects; HTTP DTOs define separate API shapes. Each record provides a static `builder()` factory and an inner `Builder` class with fluent field methods and `build()`, implemented in plain Java without Lombok. Java records provide a readable `toString()`, so console output includes field names and values. Flyway integration follows [Spring Boot's database initialization guidance](https://docs.spring.io/spring-boot/how-to/data-initialization.html).
 
@@ -228,6 +231,21 @@ Open the root `raymoore-xyz/` folder so `.env` and `compose.yaml` remain visible
 In **Run → Edit Configurations**, set **Program arguments** to `--spring.profiles.active=local`. In **Environment variables**, use **Browse for .env files and scripts** to select the root `.env` by its absolute path. Apply the settings and launch that saved configuration. IntelliJ passes the file's values to Java; opening `.env` in the editor alone does not load it. See [IntelliJ environment-file configuration](https://www.jetbrains.com/help/idea/program-arguments-and-environment-variables.html).
 
 Outside the local profile, supply `DB_URL` (a full `jdbc:postgresql://host:port/database` URL), `DB_USER`, `DB_PASSWORD`, and `API_SECRET`.
+
+### Running a command-line script
+
+`Sandbox` is a minimal non-web Spring application for development experiments. It loads the normal Spring configuration, prints the application name and a greeting, and exits. It deliberately does not start the website, connect to PostgreSQL, or run Flyway.
+
+From the repository root, export `.env` and select the script's main class:
+
+```sh
+set -a
+source .env
+set +a
+./backend/mvnw -f backend/pom.xml spring-boot:run \
+  -Dapplication.main-class=xyz.raymoore.Sandbox \
+  -Dspring-boot.run.profiles=local
+```
 
 ### Starting and stopping during everyday development
 
@@ -285,7 +303,7 @@ In Render:
 3. Leave Build Command, Start Command, and Docker Command empty; Render uses the Dockerfile.
 4. Configure `DB_URL`, `DB_USER`, `DB_PASSWORD`, and `API_SECRET`. The container reads Render's `PORT` value and defaults to port 10000 when run elsewhere.
 5. Set the health check path to `/api/madisonsc/picks/latest` so readiness checks also verify database-backed reads.
-6. Deploy the selected commit. Verify `/`, `/madisonsc`, `/madisonsc/picks/latest`, direct annual, weekly, and contestant-picks URLs, their public JSON endpoints, and a missing `/api` route.
+6. Deploy the selected commit. Verify `/`, `/survivor`, `/madisonsc`, `/madisonsc/picks/latest`, direct annual, weekly, and contestant-picks URLs, their public JSON endpoints, and a missing `/api` route.
 
 The initial production startup recorded baseline 0 and applied V1 successfully. Automatic baselining has since been removed from `application.yml`, restoring Flyway's default of `false` for subsequent deployments.
 
@@ -298,6 +316,6 @@ A monorepo with two top-level application directories:
 
 PostgreSQL stores application data, Flyway manages SQL schema changes, and Docker supports local infrastructure and deployment.
 
-Each project has its own schema within the shared `raymoorexyz` database. The planned shared hamburger navigation will link to Home and Madison SC; this first home page has no navigation.
+Database-backed projects have their own schema within the shared `raymoorexyz` database. Survivor League reads Google Sheets directly and has no schema. The shared hamburger navigation links to Home and Madison SC; Survivor League is available only through its direct `/survivor` URL and does not display the shared header.
 
-See [PROJECT.md](PROJECT.md) for shared technologies, architecture, authentication strategy, and implementation guidance. See the [Madison SC project plan](projects/madisonsc/README.md) for league requirements, the contestant/pick schema, routes, and acceptance criteria. Future project plans belong under `projects/<project>/README.md`.
+See [PROJECT.md](PROJECT.md) for shared technologies, architecture, authentication strategy, and implementation guidance. See the [Madison SC project plan](projects/madisonsc/README.md) and [Survivor League project plan](projects/survivor/README.md) for project-specific requirements. Future project plans belong under `projects/<project>/README.md`.

@@ -5,6 +5,7 @@ import ContestantPicksPage from './projects/madisonsc/pages/contestants/Contesta
 import LatestWeekPage from './projects/madisonsc/pages/picks/LatestWeekPage';
 import WeeklyPicksPage from './projects/madisonsc/pages/picks/WeeklyPicksPage';
 import YearlyPicksPage from './projects/madisonsc/pages/picks/YearlyPicksPage';
+import SurvivorPage from './projects/survivor/pages/SurvivorPage';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 function NotFoundPage() {
@@ -22,6 +23,7 @@ export default function App() {
       <HamburgerMenu />
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/survivor" element={<SurvivorPage />} />
         <Route path="/madisonsc" element={<RootPage />} />
         <Route path="/madisonsc/contestants/:contestant/picks" element={<ContestantPicksPage />} />
         <Route path="/madisonsc/picks/latest" element={<LatestWeekPage />} />

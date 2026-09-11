@@ -10,15 +10,19 @@ function isMadisonScPath(pathname: string) {
   return pathname === '/madisonsc' || pathname.startsWith('/madisonsc/');
 }
 
+function isPagePath(pagePath: string, pathname: string) {
+  if (pagePath === '/') return pathname === pagePath;
+  if (pagePath === '/madisonsc/picks/latest') return isMadisonScPath(pathname);
+  return pathname === pagePath || pathname.startsWith(`${pagePath}/`);
+}
+
 export default function HamburgerMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const drawer = useRef<HTMLDialogElement>(null);
   const { pathname } = useLocation();
-  const currentPage = pages.find(({ path }) => (
-    path === '/'
-      ? pathname === path
-      : isMadisonScPath(pathname)
-  ));
+  const currentPage = pages.find(({ path }) => isPagePath(path, pathname));
+
+  if (pathname === '/survivor') return null;
 
   function openMenu() {
     const dialog = drawer.current;
