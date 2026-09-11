@@ -483,7 +483,7 @@
 }
 
 .msc-page .contestant-team-table-scroll {
-  width: fit-content;
+  width: max-content;
   max-width: 100%;
   margin-inline: auto;
   overflow-x: auto;
@@ -493,7 +493,7 @@
 }
 
 .msc-page .contestant-team-table {
-  width: max-content;
+  width: 100%;
   table-layout: auto;
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
