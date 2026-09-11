@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { getWeeklyPicks } from '../../api';
-import PicksNavigationBanner from '../../components/PicksNavigationBanner';
+import NavigationBanner from '../../components/NavigationBanner';
+import { formatCompetitionYear } from '../../format';
 import type { PickRecord, WeeklyPick, WeeklyPicksResponse } from '../../types';
 import '../../styles.css';
 
@@ -76,7 +77,10 @@ export default function WeeklyPicksPage() {
 
   return (
     <main className="msc-page msc-weekly-picks-page">
-      <PicksNavigationBanner year={year} week={week} />
+      <NavigationBanner segments={[
+        { label: formatCompetitionYear(year), to: `/madisonsc/picks/${year}` },
+        { label: `Week ${week}` },
+      ]} />
 
       {year === 12 && (
         <aside className="reyna-memorial" role="note">
@@ -99,7 +103,11 @@ export default function WeeklyPicksPage() {
             <article className="contestant-card" key={contestant.contestantId}>
               <header className="contestant-header">
                 <div className="contestant-identity">
-                  <h2>{rankMedal(contestant.rank)}{contestant.name}</h2>
+                  <h2>
+                    <Link to={`/madisonsc/contestants/${contestant.contestantId}/picks`}>
+                      {rankMedal(contestant.rank)}{contestant.name}
+                    </Link>
+                  </h2>
                   <span className="cumulative-record">
                     {formatRecord(contestant.cumulativeRecord)} · {formatPercentage(contestant.cumulativeWinPercentage)}
                   </span>

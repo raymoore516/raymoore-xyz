@@ -9,11 +9,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import xyz.raymoore.madisonsc.category.Team;
 import xyz.raymoore.madisonsc.domain.Contestant;
 import xyz.raymoore.madisonsc.domain.Pick;
+import xyz.raymoore.madisonsc.dto.query.ContestantPicksResponse;
 import xyz.raymoore.madisonsc.dto.query.LatestWeekResponse;
 import xyz.raymoore.madisonsc.dto.query.RootResponse;
 import xyz.raymoore.madisonsc.dto.query.WeeklyPicksResponse;
@@ -25,6 +28,7 @@ import xyz.raymoore.madisonsc.repository.PickRepository;
 public class PickQueryService {
 
     private static final int FIRST_SEASON_START_YEAR = 2014;
+    private static final int CONTESTANT_PICKS_YEAR_LIMIT = 10;
 
     private final ContestantRepository contestantRepository;
     private final PickRepository pickRepository;
@@ -118,6 +122,43 @@ public class PickQueryService {
                 .seasonLabel(seasonLabel(year))
                 .weeks(List.copyOf(weeks))
                 .build();
+    }
+
+    public Optional<ContestantPicksResponse> findContestantPicks(UUID contestantId) {
+        return contestantRepository.findById(contestantId).map(contestant -> {
+            List<Pick> contestantPicks = pickRepository.findByContestantId(contestantId);
+            List<Integer> years = pickRepository.findAvailableYears().stream()
+                    .limit(CONTESTANT_PICKS_YEAR_LIMIT)
+                    .toList();
+            List<ContestantPicksResponse.TeamView> teams = new ArrayList<>();
+
+            for (Team team : Team.values()) {
+                List<Pick> teamPicks = contestantPicks.stream()
+                        .filter(pick -> pick.team().equals(team.name()))
+                        .toList();
+                List<ContestantPicksResponse.YearRecordView> yearlyRecords = years.stream()
+                        .map(year -> ContestantPicksResponse.YearRecordView.builder()
+                                .year(year)
+                                .record(toContestantRecordView(calculateRecord(teamPicks.stream()
+                                        .filter(pick -> pick.year() == year)
+                                        .toList())))
+                                .build())
+                        .toList();
+
+                teams.add(ContestantPicksResponse.TeamView.builder()
+                        .team(team.name())
+                        .cumulativeRecord(toContestantRecordView(calculateRecord(teamPicks)))
+                        .yearlyRecords(yearlyRecords)
+                        .build());
+            }
+
+            return ContestantPicksResponse.builder()
+                    .contestantId(contestant.contestantId())
+                    .name(contestant.name())
+                    .years(years)
+                    .teams(List.copyOf(teams))
+                    .build();
+        });
     }
 
     private List<WeeklyPicksResponse.ContestantView> buildContestantViews(
@@ -254,6 +295,14 @@ public class PickQueryService {
         }
 
         return new RecordTotals(wins, losses, ties);
+    }
+
+    private static ContestantPicksResponse.RecordView toContestantRecordView(RecordTotals record) {
+        return ContestantPicksResponse.RecordView.builder()
+                .wins(record.wins())
+                .losses(record.losses())
+                .ties(record.ties())
+                .build();
     }
 
     private static int comparePercentage(RecordTotals left, RecordTotals right) {

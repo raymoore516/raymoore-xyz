@@ -57,3 +57,17 @@ export type YearlyPicksResponse = {
     contestants: WeeklyContestant[];
   }>;
 };
+
+export type ContestantPicksResponse = {
+  contestantId: string;
+  name: string;
+  years: number[];
+  teams: Array<{
+    team: string;
+    cumulativeRecord: PickRecord;
+    yearlyRecords: Array<{
+      year: number;
+      record: PickRecord;
+    }>;
+  }>;
+};

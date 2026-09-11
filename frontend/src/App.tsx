@@ -1,6 +1,7 @@
 import HomePage from './app/pages/HomePage';
 import HamburgerMenu from './app/components/HamburgerMenu';
 import RootPage from './projects/madisonsc/pages/RootPage';
+import ContestantPicksPage from './projects/madisonsc/pages/contestants/ContestantPicksPage';
 import LatestWeekPage from './projects/madisonsc/pages/picks/LatestWeekPage';
 import WeeklyPicksPage from './projects/madisonsc/pages/picks/WeeklyPicksPage';
 import YearlyPicksPage from './projects/madisonsc/pages/picks/YearlyPicksPage';
@@ -22,6 +23,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/madisonsc" element={<RootPage />} />
+        <Route path="/madisonsc/contestants/:contestant/picks" element={<ContestantPicksPage />} />
         <Route path="/madisonsc/picks/latest" element={<LatestWeekPage />} />
         <Route path="/madisonsc/picks/:year" element={<YearlyPicksPage />} />
         <Route path="/madisonsc/picks/:year/:week" element={<WeeklyPicksPage />} />

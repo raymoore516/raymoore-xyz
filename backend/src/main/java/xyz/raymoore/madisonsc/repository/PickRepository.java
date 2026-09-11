@@ -35,6 +35,14 @@ public interface PickRepository extends ListCrudRepository<Pick, UUID> {
             """)
     List<Pick> findByYear(@Param("year") int year);
 
+    @Query("""
+            SELECT pick_id, entry_date, contestant_id, year, week, team, underdog, line, result
+            FROM madisonsc.pick
+            WHERE contestant_id = :contestantId
+            ORDER BY year DESC, entry_date, pick_id
+            """)
+    List<Pick> findByContestantId(@Param("contestantId") UUID contestantId);
+
     @Query("SELECT DISTINCT year FROM madisonsc.pick ORDER BY year DESC")
     List<Integer> findAvailableYears();
 }

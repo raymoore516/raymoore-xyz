@@ -21,7 +21,8 @@
 }
 
 .msc-page.msc-weekly-picks-page,
-.msc-page.msc-yearly-picks-page {
+.msc-page.msc-yearly-picks-page,
+.msc-page.msc-contestant-picks-page {
   max-width: 90rem;
 }
 
@@ -50,7 +51,7 @@
 }
 
 .msc-page .msc-year-summary-card > header {
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 1rem;
   text-align: center;
   background: #e6f0ff;
   border-bottom: 1px solid #aab4c4;
@@ -111,6 +112,7 @@
 .msc-page .msc-standing-name {
   min-width: 0;
   overflow: hidden;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -123,7 +125,7 @@
   white-space: nowrap;
 }
 
-.msc-page .picks-navigation-banner {
+.msc-page .navigation-banner {
   display: flex;
   justify-content: center;
   margin: 0 0 1rem;
@@ -133,7 +135,7 @@
   border-block: 1px solid #aab4c4;
 }
 
-.msc-page .picks-navigation-banner h1 {
+.msc-page .navigation-banner h1 {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -142,15 +144,19 @@
   font: inherit;
 }
 
-.msc-page .picks-navigation-banner a {
+.msc-page .navigation-banner a {
   font-weight: 700;
 }
 
-.msc-page .picks-navigation-banner [aria-current="page"] {
+.msc-page .navigation-banner [aria-current="page"] {
   font-weight: 700;
 }
 
-.msc-page .picks-navigation-separator {
+.msc-page .navigation-banner-emphasis {
+  font-weight: 700;
+}
+
+.msc-page .navigation-banner-separator {
   color: #57606a;
   font-weight: 700;
 }
@@ -476,6 +482,105 @@
   text-align: center;
 }
 
+.msc-page .contestant-team-table-scroll {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  overflow-x: auto;
+  border: 1px solid #000a32;
+  border-radius: 0.625rem;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 16%);
+}
+
+.msc-page .contestant-team-table {
+  width: max-content;
+  table-layout: auto;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  border-collapse: collapse;
+}
+
+.msc-page .contestant-team-column {
+  width: 1%;
+}
+
+.msc-page .contestant-record-column {
+  width: 8ch;
+}
+
+.msc-page .contestant-team-table th,
+.msc-page .contestant-team-table td {
+  height: 2.75rem;
+  padding: 0.375rem;
+  text-align: center;
+  white-space: nowrap;
+  border-right: 1px solid #d0d7de;
+  border-bottom: 1px solid #d0d7de;
+}
+
+.msc-page .contestant-team-table tr > :last-child {
+  border-right: 0;
+}
+
+.msc-page .contestant-team-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.msc-page .contestant-team-table thead th {
+  height: 2.5rem;
+  background: #e6f0ff;
+}
+
+.msc-page .contestant-team-table thead a {
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+
+.msc-page .contestant-team-table tbody th {
+  padding-left: 0.75rem;
+  text-align: left;
+  background: #fff;
+}
+
+.msc-page .contestant-team-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.msc-page .contestant-team-identity img {
+  display: block;
+  width: 2.5rem;
+  height: 1.75rem;
+  object-fit: contain;
+}
+
+.msc-page .contestant-team-record {
+  font-weight: 700;
+  background: #fff;
+}
+
+.msc-page .contestant-team-record.above-fifty {
+  color: #0a5c24;
+  background: #dafbe1;
+}
+
+.msc-page .contestant-team-record.exactly-fifty {
+  color: #633c01;
+  background: #fff1b8;
+}
+
+.msc-page .contestant-team-record.below-fifty {
+  color: #82071e;
+  background: #ffdad6;
+}
+
+.msc-page .contestant-team-record.never-picked {
+  color: #57606a;
+  background: #eaeef2;
+}
+
 @media (max-width: 48rem) {
   .msc-page {
     padding-inline: 0.5rem;
@@ -547,5 +652,32 @@
 
   .msc-page .year-record-column {
     width: 3.25rem;
+  }
+
+  .msc-page .contestant-team-table {
+    font-size: 0.625rem;
+  }
+
+  .msc-page .contestant-team-table th,
+  .msc-page .contestant-team-table td {
+    height: 2.25rem;
+    padding: 0.1875rem;
+  }
+
+  .msc-page .contestant-team-identity {
+    gap: 0.25rem;
+  }
+
+  .msc-page .contestant-team-table tbody th {
+    padding-left: 0.25rem;
+  }
+
+  .msc-page .contestant-team-identity img {
+    width: 1.75rem;
+    height: 1.25rem;
+  }
+
+  .msc-page .contestant-year-desktop-only {
+    display: none;
   }
 }

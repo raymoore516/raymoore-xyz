@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getYearlyPicks } from '../../api';
-import PicksNavigationBanner from '../../components/PicksNavigationBanner';
+import NavigationBanner from '../../components/NavigationBanner';
+import { formatCompetitionYear } from '../../format';
 import type { PickRecord, WeeklyContestant, WeeklyPick, YearlyPicksResponse } from '../../types';
 import '../../styles.css';
 
@@ -27,7 +28,9 @@ function ContestantRow({ contestant }: { contestant: WeeklyContestant }) {
   return (
     <tr>
       <th scope="row" title={contestant.name}>
-        {rankMedal(contestant.rank)}{contestant.name}
+        <Link to={`/madisonsc/contestants/${contestant.contestantId}/picks`}>
+          {rankMedal(contestant.rank)}{contestant.name}
+        </Link>
       </th>
       <td className="year-record-cell" aria-label={`Cumulative record ${formatRecord(contestant.cumulativeRecord)}`}>
         {formatRecord(contestant.cumulativeRecord)}
@@ -97,7 +100,7 @@ export default function YearlyPicksPage() {
 
   return (
     <main className="msc-page msc-yearly-picks-page">
-      <PicksNavigationBanner year={year} />
+      <NavigationBanner segments={[{ label: formatCompetitionYear(year) }]} />
 
       {year === 12 && (
         <aside className="reyna-memorial" role="note">

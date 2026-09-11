@@ -4,7 +4,7 @@
 
 Build an NFL pick'em league tracker for weekly picks against the spread, results, and cumulative standings as a project within the raymoore.xyz personal website. It will replace the existing Madison SC website.
 
-This is the implementation plan for AI coding agents. The database foundation is implemented with Flyway V1, mapped `Contestant` and `Pick` Java records in `xyz.raymoore.madisonsc.domain`, repositories, and Spring MVC root-summary/latest-week/annual-picks/weekly-picks endpoints. The React frontend renders `/madisonsc` as a year-summary page, resolves `/madisonsc/picks/latest` through the latest-week API, and provides responsive annual and weekly standings views. The secret-protected administrator submission API is implemented. Proposed API contracts and unresolved business rules are labeled explicitly.
+This is the implementation plan for AI coding agents. The database foundation is implemented with Flyway V1, mapped `Contestant` and `Pick` Java records in `xyz.raymoore.madisonsc.domain`, repositories, and Spring MVC root-summary/latest-week/annual-picks/weekly-picks/contestant-picks endpoints. The React frontend renders `/madisonsc` as a year-summary page, resolves `/madisonsc/picks/latest` through the latest-week API, and provides responsive annual, weekly, and contestant-by-team views. The secret-protected administrator submission API is implemented. Proposed API contracts and unresolved business rules are labeled explicitly.
 
 The [root PROJECT.md](../../PROJECT.md) owns shared technologies, application architecture, authentication strategy, database migration conventions, and site navigation. This file owns Madison SC business requirements, its database schema, routes, UI behavior, and acceptance criteria. Read [AGENTS.md](../../AGENTS.md) for collaboration guidance and [README.md](../../README.md) for developer setup and day-to-day workflows. Keep these documents consistent as decisions are made.
 
@@ -53,7 +53,7 @@ There are no required matchup, schedule, or team tables in the initial model. Ea
 
 ### Competition years and reference page
 
-`year` is the year of the competition, not a calendar year. Year 13 is the **2026-2027 NFL season**, and Year 11 is the **2024-2025 NFL season**. Use these labels consistently in navigation and page headings; keep the competition number in URLs and database rows. With continuous annual numbering, the display mapping is season start year = competition year + 2013. Do not use that mapping to infer the active week or reject historical submissions.
+`year` is the year of the competition, not a calendar year. Year 13 is the **2026-2027 NFL season**, and Year 11 is the **2024-2025 NFL season**. Browser breadcrumbs format these as `2026: Year 13` and `2024: Year 11`; keep the competition number in URLs and database rows. With continuous annual numbering, the display mapping is season start year = competition year + 2013. Do not use that mapping to infer the active week or reject historical submissions.
 
 The live [Year 11, Week 18 page](https://raymoore.xyz/madisonsc/picks/11/18) is a content reference: it displays week links 1–18, five picks per contestant, team logos, spreads, results, and weekly/cumulative records. Retain that information in the React design; the new shared navigation and medal indicators for the top three ranks are additional UI requirements.
 
@@ -84,7 +84,7 @@ Keep contestant data and operational pick/result changes separate from Flyway sc
 
 ## HTTP API and browser routes
 
-Retain the existing administrator submission header and shorthand body for the proof of concept. Unlike the archived Javalin route, the Spring endpoint lives under `/api` because it exchanges JSON rather than rendering the React route. The public root-summary, latest-week, annual-picks, and weekly-picks APIs and administrator submission API are implemented.
+Retain the existing administrator submission header and shorthand body for the proof of concept. Unlike the archived Javalin route, the Spring endpoint lives under `/api` because it exchanges JSON rather than rendering the React route. The public root-summary, latest-week, annual-picks, weekly-picks, and contestant-picks APIs and administrator submission API are implemented.
 
 | Method | Path | Purpose / intended access |
 | --- | --- | --- |
@@ -96,13 +96,15 @@ Retain the existing administrator submission header and shorthand body for the p
 | GET | `/api/madisonsc/picks/{year}` | Public annual view data, including each week's cumulative standings. |
 | GET | `/madisonsc/picks/{year}/{week}` | React weekly view. |
 | GET | `/api/madisonsc/picks/{year}/{week}` | Public weekly view data, including cumulative standings. |
+| GET | `/madisonsc/contestants/{contestant}/picks` | React contestant records grouped by NFL team and competition year; `contestant` is a UUID. |
+| GET | `/api/madisonsc/contestants/{contestant}/picks` | Public contestant records grouped by NFL team and competition year. |
 | POST | `/api/madisonsc/picks/{year}/{week}` | Administrator-only submission of one to five picks using `api-secret`; JSON response. |
 
 The JSON GET and POST intentionally use the same `/api/madisonsc/picks/{year}/{week}` resource and are distinguished by HTTP method. The React browser route remains separate under `/madisonsc`. There are no contestant CRUD, result PATCH, or `/api/auth/me` endpoints in the initial scope.
 
 ### Madison SC root and latest-week pages
 
-`GET /api/madisonsc` is implemented by `RootController` through `PickQueryService`. It returns every competition year that has picks, newest-first. Each year contains its season label, latest populated week, and the contestant names, cumulative competition ranks, cumulative W-L-T records, and cumulative win percentages calculated through that week. The React `/madisonsc` page renders one card per year, displays medal emoji for the top three ranks, and links each `Year N` card header to `/madisonsc/picks/{year}`. An empty database produces a clear empty state.
+`GET /api/madisonsc` is implemented by `RootController` through `PickQueryService`. It returns every competition year that has picks, newest-first. Each year contains its season label, latest populated week, and the contestant names, cumulative competition ranks, cumulative W-L-T records, and cumulative win percentages calculated through that week. The React `/madisonsc` page renders one card per year, displays medal emoji for the top three ranks, links each `Year N` card header to `/madisonsc/picks/{year}`, and links each bold contestant name to that contestant's picks view. An empty database produces a clear empty state.
 
 `GET /api/madisonsc/picks/latest` runs this query against the singular table `madisonsc.pick`:
 
@@ -142,6 +144,12 @@ The implemented weekly response includes `year`, `week`, season label, available
 
 The annual response includes `year`, season label, and all 18 week snapshots. Each snapshot uses the same cumulative-percentage ranking and contestant summary contract as the weekly response. The service loads a competition year's picks and contestants once, then derives every weekly cutoff from that shared data.
 
+### Contestant picks response
+
+`GET /api/madisonsc/contestants/{contestant}/picks` is implemented by `ContestantPicksController` through `PickQueryService`; a missing contestant returns `404`. The response identifies the contestant and contains all 32 NFL teams in code order, each team's all-time W-L-T record, and records for up to the 10 latest globally available competition years in newest-first order. All-time records include every competition year, including years older than the displayed columns. Pending picks do not count in W-L-T totals, and teams or years without a completed pick display `0-0-0`.
+
+The React contestant view uses a compact, centered table with team logos and codes in the first column. `All Time` links to `/madisonsc`; each `Year N` heading links to `/madisonsc/picks/{year}`. Only the all-time cells use win-percentage backgrounds: green above 50%, yellow at exactly 50%, red below 50%, and gray for `0-0-0`. A tie counts as half a win when determining the color. Desktop displays up to 10 year columns, while the mobile breakpoint displays the latest five.
+
 ## Authentication and authorization
 
 Follow the [site authentication strategy in PROJECT.md](../../PROJECT.md). Public Madison SC pages and JSON reads require no login. Ray is the sole administrator.
@@ -166,15 +174,16 @@ The `madisonsc` schema belongs to this project within the shared `raymoorexyz` d
 
 Use the shared React/TypeScript conventions and `HamburgerMenu` from the root plan.
 
-- Put `RootPage.tsx` in `frontend/src/projects/madisonsc/pages/` and put `LatestWeekPage.tsx`, `YearlyPicksPage.tsx`, and `WeeklyPicksPage.tsx` in its `pages/picks/` subfolder. Keep API calls in `api.ts`, shared API types in `types.ts`, and project components in `frontend/src/projects/madisonsc/components/` when needed. Shared application pages and components belong under `frontend/src/app/`.
+- Put `RootPage.tsx` in `frontend/src/projects/madisonsc/pages/`, `ContestantPicksPage.tsx` in its `pages/contestants/` subfolder, and `LatestWeekPage.tsx`, `YearlyPicksPage.tsx`, and `WeeklyPicksPage.tsx` in its `pages/picks/` subfolder. Keep API calls in `api.ts`, shared display formatting in `format.ts`, shared API types in `types.ts`, and project components such as `NavigationBanner.tsx` in `frontend/src/projects/madisonsc/components/`. Shared application pages and components belong under `frontend/src/app/`.
 - Put backend code under `backend/src/main/java/xyz/raymoore/madisonsc/`, organized into `category`, `controller`, `service`, `domain`, `repository`, and `dto` as needed. Put fixed project values such as `Team` in `category`, mapped records in `domain`, and repository interfaces and classes in `repository`. Group public read contracts in `dto.query` and administrator pick-submission contracts in `dto.submission`, following the shared package and inner `Builder` conventions in `PROJECT.md`. Keep typed API calls and team/result types aligned with the backend contract.
-- Define React routes for `/madisonsc`, `/madisonsc/picks/latest`, `/madisonsc/picks/:year`, and `/madisonsc/picks/:year/:week`. Use relative API paths such as `/api/madisonsc`, `/api/madisonsc/picks/13`, and `/api/madisonsc/picks/13/1` through Vite's `/api` proxy during development.
+- Define React routes for `/madisonsc`, `/madisonsc/picks/latest`, `/madisonsc/picks/:year`, `/madisonsc/picks/:year/:week`, and `/madisonsc/contestants/:contestant/picks`. Use relative API paths such as `/api/madisonsc`, `/api/madisonsc/picks/13`, `/api/madisonsc/picks/13/1`, and `/api/madisonsc/contestants/{uuid}/picks` through Vite's `/api` proxy during development.
 - The shared Madison SC hamburger-menu link points to `/madisonsc/picks/latest`. The root summary remains directly navigable at `/madisonsc`.
-- Put a shared, centered breadcrumb banner above both picks views. The annual view displays `Madison SC » Year 12 (2025)`, with `Madison SC` linking to the root summary and the current year shown in bold, nonlinked text. The weekly view adds a bold selected week and links its year segment back to the annual view, such as `Madison SC » Year 12 (2025) » Week 4`. Keep the current week non-clickable. Madison SC links use distinct blue text without underlines, including the root, linked year, and annual week-card headers. Year selection is deferred.
+- Use the shared, centered `NavigationBanner` breadcrumb above annual, weekly, and contestant-picks views. The annual view displays `Madison SC » 2025: Year 12`, with `Madison SC` linking to the root summary and the current year shown in bold, nonlinked text. The weekly view adds a bold selected week and links its year segment back to the annual view, such as `Madison SC » 2025: Year 12 » Week 4`. The contestant view displays `Madison SC >> Contestants >> {Name}`; `Contestants` is bold but remains unlinked until the future `/madisonsc/contestants` view exists. Keep current pages non-clickable. Madison SC links use distinct blue text without underlines, including the root, linked year, and annual week-card headers. Year selection is deferred.
 - Show “Year 12 has been suspended in loving memory of Reyna” in a visually distinct memorial banner on every Year 12 weekly view, matching the archived site's year-specific behavior.
 - Show the same Reyna memorial banner on the Year 12 annual view.
 - Render the annual view as a responsive grid of 18 compact week cards. Link each week-card header to that week's detailed view. Within each card, put every contestant on one row ordered by cumulative win percentage through that week. Show the medal-prefixed name, cumulative record, weekly record, and five fixed pick cells. Fill unused cells with an empty marker; show only the team code without logos or spreads in populated cells, using green for wins, yellow for ties, red for losses, and gray for pending results. Protect the full W-L-T record values as the card narrows, allowing the other columns to compress first.
-- Keep historical links such as `/madisonsc/picks/11/18` directly navigable and refreshable. Restrict the production SPA fallback to GET/HEAD UI requests; administrator submissions use the separate `/api` namespace.
+- Link contestant names on the root, annual, and weekly views to `/madisonsc/contestants/{contestant}/picks` using each contestant's UUID.
+- Keep historical links such as `/madisonsc/picks/11/18` and contestant-picks links directly navigable and refreshable. Restrict the production SPA fallback to GET/HEAD UI requests; administrator submissions use the separate `/api` namespace.
 - Cancel or ignore stale requests when the selected year/week changes. Provide loading, error, empty, and success states, and textual result labels alongside colors. Retain team logos, spreads, results, and weekly/cumulative records from the reference page.
 - Use controlled inputs when adding the later Picks Submission page. Result-entry and contestant-management pages remain outside scope.
 - Initial UI acceptance includes narrow mobile and desktop viewports, public empty states, and shared menu keyboard operation.
@@ -190,7 +199,8 @@ Apply the shared test tooling and delivery checks in the root plan, with these M
 - Use Vitest and React Testing Library for request failures, empty weeks, medal display for the top three ranks, and integration with shared navigation.
 - Verify `/madisonsc` loads through both Vite and the packaged app, renders newest-first year summaries using each year's latest populated week, links to every annual view, and handles an empty database.
 - Verify `/madisonsc/picks/latest` requests the latest year/week through the API, renders the selected weekly data, and handles an empty database. Use test fixtures with different insertion and competition-year/week orderings; the selected week must remain data-driven as new picks arrive.
-- Verify direct navigation and refresh for root, latest, annual, and historical weekly routes, and confirm administrator POST requests receive JSON instead of the SPA fallback.
+- Verify contestant-picks views render all teams, the latest 10/5 desktop/mobile year columns, correct records and all-time colors, and links back to root and annual views. Verify root, annual, and weekly contestant-name links use UUIDs.
+- Verify direct navigation and refresh for root, latest, annual, historical weekly, and contestant-picks routes, and confirm administrator POST requests receive JSON instead of the SPA fallback.
 
 ## Remaining decisions
 

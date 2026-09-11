@@ -76,7 +76,11 @@ export default function RootPage() {
                     <span className="msc-standing-rank" aria-label={`Rank ${contestant.rank}`}>
                       #{contestant.rank}
                     </span>
-                    <span className="msc-standing-name">{rankMedal(contestant.rank)}{contestant.name}</span>
+                    <span className="msc-standing-name">
+                      <Link to={`/madisonsc/contestants/${contestant.contestantId}/picks`}>
+                        {rankMedal(contestant.rank)}{contestant.name}
+                      </Link>
+                    </span>
                     <span
                       className="msc-standing-record"
                       aria-label={`Cumulative record ${formatRecord(contestant.cumulativeRecord)}, ${formatPercentage(contestant.cumulativeWinPercentage)}`}
