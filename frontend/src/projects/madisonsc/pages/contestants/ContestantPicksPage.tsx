@@ -94,7 +94,7 @@ export default function ContestantPicksPage() {
               <thead>
                 <tr>
                   <th scope="col" aria-label="Team" />
-                  <th scope="col"><Link to="/madisonsc">All Time</Link></th>
+                  <th scope="col" aria-label="All-Time Record" />
                   {data.years.map((year, index) => (
                     <th
                       className={index >= 5 ? 'contestant-year-desktop-only' : undefined}
