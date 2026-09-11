@@ -17,6 +17,7 @@
 
     <properties>
         <java.version>25</java.version>
+        <application.main-class>xyz.raymoore.App</application.main-class>
     </properties>
 
     <dependencies>
@@ -53,6 +54,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>${application.main-class}</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
