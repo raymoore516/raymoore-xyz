@@ -483,22 +483,23 @@
 }
 
 .msc-page .contestant-team-table-scroll {
-  width: fit-content;
+  width: 100%;
   max-width: 100%;
-  margin-inline: auto;
   overflow-x: auto;
-  overflow-y: hidden;
-  border: 1px solid #000a32;
-  border-radius: 0.625rem;
-  box-shadow: 0 1px 4px rgb(0 0 0 / 16%);
 }
 
 .msc-page .contestant-team-table {
   width: max-content;
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid #000a32;
+  border-spacing: 0;
+  border-radius: 0.625rem;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 16%);
   table-layout: auto;
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
-  border-collapse: collapse;
+  border-collapse: separate;
 }
 
 .msc-page .contestant-team-column {
