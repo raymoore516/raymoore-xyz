@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
 import { getSurvivorLeague } from '../api';
-import type { SurvivorResponse } from '../types';
+import type { SurvivorPickStatus, SurvivorResponse } from '../types';
 import '../styles.css';
+
+const statusLabels: Record<SurvivorPickStatus, string> = {
+  PENDING: 'Pending result',
+  SURVIVAL: 'Survived this week',
+  ELIMINATION: 'Lost this week',
+  ELIMINATED: 'Previously eliminated',
+};
 
 export default function SurvivorPage() {
   const [data, setData] = useState<SurvivorResponse | null>(null);
@@ -34,15 +41,15 @@ export default function SurvivorPage() {
     <main className="survivor-page">
       <header className="survivor-heading">
         <h1>Survivor League</h1>
-        <p>Selections are hidden until Sunday</p>
+        <p>Teams are hidden until all survivors have submitted picks</p>
       </header>
 
-      {isLoading && <p className="survivor-status" role="status">Loading picks…</p>}
+      {isLoading && <p className="survivor-status" role="status">Loading spreadsheet…</p>}
       {error && <p className="survivor-status survivor-error" role="alert">{error}</p>}
       {data && data.weeks.length === 0 && (
         <section className="survivor-status" aria-labelledby="no-weeks-heading">
-          <h2 id="no-weeks-heading">No picks found</h2>
-          <p>The spreadsheet does not contain a populated week yet.</p>
+          <h2 id="no-weeks-heading">Spreadsheet is blank</h2>
+          <p>The spreadsheet does not contain a populated week yet</p>
         </section>
       )}
 
@@ -67,23 +74,42 @@ export default function SurvivorPage() {
               <thead>
                 <tr>
                   <th scope="col">Name</th>
-                  <th scope="col">Pick</th>
+                  <th scope="col">{week.label} Pick</th>
                 </tr>
               </thead>
               <tbody>
                 {week.contestants.length === 0 ? (
                   <tr>
-                    <td colSpan={2} className="survivor-empty-row">No active contestants found.</td>
+                    <td colSpan={2} className="survivor-empty-row">No entrants found.</td>
                   </tr>
                 ) : week.contestants.map((contestant, index) => (
-                  <tr key={`${contestant.name}-${index}`}>
-                    <th scope="row">{contestant.name}</th>
+                  <tr
+                    key={`${contestant.name}-${index}`}
+                    className={`survivor-row-${contestant.status.toLowerCase()}${week.picksHidden && !contestant.selectionExists && contestant.status !== 'ELIMINATED' ? ' survivor-row-unsubmitted' : ''}`}
+                  >
+                    <th scope="row">
+                      {contestant.name}
+                      <span className="survivor-sr-only"> — {statusLabels[contestant.status]}</span>
+                    </th>
                     <td className={contestant.pick || contestant.selectionExists ? undefined : 'survivor-empty-pick'}>
-                      {week.current && contestant.selectionExists ? (
-                        <span className="survivor-selection-exists" aria-label="Selection submitted">
+                      {contestant.status === 'ELIMINATED' ? (
+                        <span className="survivor-eliminated-label">
+                          - Eliminated Week {contestant.eliminationWeek} -
+                        </span>
+                      ) : week.picksHidden ? (
+                        <span
+                          className={`survivor-selection-indicator ${contestant.selectionExists ? 'survivor-selection-exists' : 'survivor-selection-missing'}`}
+                          role="img"
+                          aria-label={contestant.selectionExists ? 'Selection submitted' : 'Pick not yet submitted for this week'}
+                          title={contestant.selectionExists ? 'Selection submitted' : 'Pick not yet submitted for this week'}
+                        >
                           <svg aria-hidden="true" viewBox="0 0 20 20">
-                            <circle cx="10" cy="10" r="9" />
-                            <path d="m5.75 10.25 2.75 2.75 5.75-6" />
+                            {contestant.selectionExists ? (
+                              <circle cx="10" cy="10" r="9" />
+                            ) : (
+                              <polygon points="10,2 18.5,17.5 1.5,17.5" />
+                            )}
+                            <path d={contestant.selectionExists ? 'm5.75 10.25 2.75 2.75 5.75-6' : 'M10 8v3.5m0 3h.01'} />
                           </svg>
                         </span>
                       ) : contestant.pick || '—'}

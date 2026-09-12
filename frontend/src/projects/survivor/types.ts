@@ -1,13 +1,17 @@
+export type SurvivorPickStatus = 'PENDING' | 'SURVIVAL' | 'ELIMINATION' | 'ELIMINATED';
+
 export interface SurvivorContestant {
   name: string;
   pick: string;
   selectionExists: boolean;
+  status: SurvivorPickStatus;
+  eliminationWeek: number | null;
 }
 
 export interface SurvivorWeek {
   number: number;
   label: string;
-  current: boolean;
+  picksHidden: boolean;
   contestants: SurvivorContestant[];
 }
 

@@ -27,7 +27,7 @@ public record SurvivorResponse(String spreadsheetTitle, List<WeekView> weeks) {
         }
     }
 
-    public record WeekView(int number, String label, boolean current, List<ContestantView> contestants) {
+    public record WeekView(int number, String label, boolean picksHidden, List<ContestantView> contestants) {
 
         public static Builder builder() {
             return new Builder();
@@ -36,7 +36,7 @@ public record SurvivorResponse(String spreadsheetTitle, List<WeekView> weeks) {
         public static final class Builder {
             private int number;
             private String label = "";
-            private boolean current;
+            private boolean picksHidden;
             private List<ContestantView> contestants = List.of();
 
             public Builder number(int value) {
@@ -49,8 +49,8 @@ public record SurvivorResponse(String spreadsheetTitle, List<WeekView> weeks) {
                 return this;
             }
 
-            public Builder current(boolean value) {
-                current = value;
+            public Builder picksHidden(boolean value) {
+                picksHidden = value;
                 return this;
             }
 
@@ -60,12 +60,18 @@ public record SurvivorResponse(String spreadsheetTitle, List<WeekView> weeks) {
             }
 
             public WeekView build() {
-                return new WeekView(number, label, current, contestants);
+                return new WeekView(number, label, picksHidden, contestants);
             }
         }
     }
 
-    public record ContestantView(String name, String pick, boolean selectionExists) {
+    public enum PickStatus {
+        PENDING, SURVIVAL, ELIMINATION, ELIMINATED
+    }
+
+    public record ContestantView(
+            String name, String pick, boolean selectionExists, PickStatus status, Integer eliminationWeek
+    ) {
 
         public static Builder builder() {
             return new Builder();
@@ -75,6 +81,8 @@ public record SurvivorResponse(String spreadsheetTitle, List<WeekView> weeks) {
             private String name = "";
             private String pick = "";
             private boolean selectionExists;
+            private PickStatus status = PickStatus.PENDING;
+            private Integer eliminationWeek;
 
             public Builder name(String value) {
                 name = value;
@@ -91,8 +99,18 @@ public record SurvivorResponse(String spreadsheetTitle, List<WeekView> weeks) {
                 return this;
             }
 
+            public Builder status(PickStatus value) {
+                status = value;
+                return this;
+            }
+
+            public Builder eliminationWeek(Integer value) {
+                eliminationWeek = value;
+                return this;
+            }
+
             public ContestantView build() {
-                return new ContestantView(name, pick, selectionExists);
+                return new ContestantView(name, pick, selectionExists, status, eliminationWeek);
             }
         }
     }

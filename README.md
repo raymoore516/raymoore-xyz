@@ -85,7 +85,7 @@ Open **http://localhost:5173/** in your browser. The page displays **Hello World
 | `src/App.tsx` | Top-level component; selects the current page and renders shared navigation. |
 | `src/app/components/HamburgerMenu.tsx` | Shared hamburger button and navigation drawer. |
 | `src/app/pages/HomePage.tsx` | Global home page returning the heading and paragraph. Edit the text here. |
-| `src/projects/survivor/pages/SurvivorPage.tsx` | Survivor League week selector and active-contestant picks table. |
+| `src/projects/survivor/pages/SurvivorPage.tsx` | Survivor League week selector, result-colored picks, and elimination history. |
 | `src/projects/madisonsc/pages/RootPage.tsx` | Madison SC year-summary page with final cumulative ranks, records, and win percentages through each year's latest populated week. |
 | `src/projects/madisonsc/pages/contestants/ContestantPicksPage.tsx` | Contestant records grouped by all 32 NFL teams, all time, and recent competition years. |
 | `src/projects/madisonsc/pages/picks/LatestWeekPage.tsx` | Finds and navigates to the latest populated week, or displays the empty state. |
@@ -317,5 +317,7 @@ A monorepo with two top-level application directories:
 PostgreSQL stores application data, Flyway manages SQL schema changes, and Docker supports local infrastructure and deployment.
 
 Database-backed projects have their own schema within the shared `raymoorexyz` database. Survivor League reads Google Sheets directly and has no schema. The shared hamburger navigation links to Home and Madison SC; Survivor League is available only through its direct `/survivor` URL and does not display the shared header.
+
+Survivor reads the `Standings` and `Teams` tabs fresh on every page load. Checked `Entry` rows participate; red/green cell backgrounds determine losses/survival, and `Buyback` permits a single Week 1 recovery. Each week reveals team names once all eligible entrants have entered picks, regardless of whether their results are recorded. Prior eliminations remain visible in a sorted graveyard section. See the [Survivor plan](projects/survivor/README.md) for the full spreadsheet contract and color thresholds.
 
 See [PROJECT.md](PROJECT.md) for shared technologies, architecture, authentication strategy, and implementation guidance. See the [Madison SC project plan](projects/madisonsc/README.md) and [Survivor League project plan](projects/survivor/README.md) for project-specific requirements. Future project plans belong under `projects/<project>/README.md`.
