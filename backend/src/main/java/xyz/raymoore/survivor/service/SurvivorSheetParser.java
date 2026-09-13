@@ -98,7 +98,7 @@ final class SurvivorSheetParser {
 
             boolean hidden = picksHidden;
             List<ContestantView> views = contestants.stream()
-                    .sorted(CONTESTANT_ORDER)
+                    .sorted(hidden ? HIDDEN_CONTESTANT_ORDER : REVEALED_CONTESTANT_ORDER)
                     .map(contestant -> ContestantView.builder()
                             .name(contestant.name())
                             .pick(hidden ? "" : teamName(contestant.pick(), teams))
@@ -117,7 +117,19 @@ final class SurvivorSheetParser {
         return List.copyOf(weeks);
     }
 
-    private static final Comparator<ContestantView> CONTESTANT_ORDER = Comparator
+    private static final Comparator<ContestantView> HIDDEN_CONTESTANT_ORDER = Comparator
+            .comparingInt((ContestantView contestant) -> {
+                if (contestant.status() == PickStatus.ELIMINATED) {
+                    return 2;
+                }
+                return contestant.selectionExists() ? 1 : 0;
+            })
+            .thenComparingInt(contestant -> contestant.status() == PickStatus.ELIMINATED
+                    ? -contestant.eliminationWeek() : 0)
+            .thenComparing(ContestantView::name, String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(ContestantView::name);
+
+    private static final Comparator<ContestantView> REVEALED_CONTESTANT_ORDER = Comparator
             .comparingInt((ContestantView contestant) -> switch (contestant.status()) {
                 case SURVIVAL -> 0;
                 case PENDING -> 1;
