@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getSurvivorLeague } from '../api';
 import type { SurvivorPickStatus, SurvivorResponse } from '../types';
 import '../styles.css';
@@ -11,15 +12,16 @@ const statusLabels: Record<SurvivorPickStatus, string> = {
 };
 
 export default function SurvivorPage() {
+  const [searchParams] = useSearchParams();
+  const refresh = searchParams.get('refresh') === 'true';
   const [data, setData] = useState<SurvivorResponse | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
 
-    getSurvivorLeague(controller.signal)
+    getSurvivorLeague(controller.signal, refresh)
       .then((response) => {
         setData(response);
         setSelectedWeek(response.weeks.at(-1)?.number ?? null);
@@ -27,13 +29,10 @@ export default function SurvivorPage() {
       .catch((requestError: unknown) => {
         if (requestError instanceof DOMException && requestError.name === 'AbortError') return;
         setError(requestError instanceof Error ? requestError.message : 'Unable to load Survivor League.');
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setIsLoading(false);
       });
 
     return () => controller.abort();
-  }, []);
+  }, [refresh]);
 
   const week = data?.weeks.find(({ number }) => number === selectedWeek);
 
@@ -44,7 +43,6 @@ export default function SurvivorPage() {
         <p>Teams hidden until survivor picks submitted</p>
       </header>
 
-      {isLoading && <p className="survivor-status" role="status">Loading spreadsheet…</p>}
       {error && <p className="survivor-status survivor-error" role="alert">{error}</p>}
       {data && data.weeks.length === 0 && (
         <section className="survivor-status" aria-labelledby="no-weeks-heading">

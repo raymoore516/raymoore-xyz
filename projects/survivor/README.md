@@ -16,7 +16,7 @@ The Survivor League project publishes the current contestant picks from a Google
 - Order available weeks numerically and select the latest populated week initially.
 - In `Teams`, use the `Team` column as the code and the `Name` column as its display value. Revealed picks display that team name rather than the raw code from `Standings`.
 
-The backend reads both worksheets in one Google Sheets request per API request, retrieving values and effective background colors together. The API sends `Cache-Control: no-store`, and the frontend also disables its fetch cache so reloading the page immediately reflects spreadsheet changes.
+The backend reads both worksheets in one Google Sheets request, retrieving values and effective background colors together. It caches the parsed response at application startup and refreshes it every 60 seconds. A scheduled refresh failure leaves the last successful response in the cache; an initial failure prevents application startup. The API sends `Cache-Control: no-store`, and the frontend also disables its fetch cache so each page load receives the current server-side cache value.
 
 ## Results, elimination, and visibility
 
@@ -46,8 +46,8 @@ The Sheets format behavior is documented in [CellData / CellFormat](https://deve
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| GET | `/survivor` | React page with the week selector and contestant-pick table. |
-| GET | `/api/survivor` | Public JSON representation of populated weeks, entrants, result status, and elimination history. |
+| GET | `/survivor` | React page with the week selector and contestant-pick table. Pass `?refresh=true` to refresh the server cache from Sheets before rendering. |
+| GET | `/api/survivor` | Public JSON representation of populated weeks, entrants, result status, and elimination history. The optional `refresh` query parameter defaults to `false`; `true` forces a Sheets read and updates the shared cache. |
 
 The JSON route uses Google Application Default Credentials with the read-only Sheets scope. For local development, `GOOGLE_APPLICATION_CREDENTIALS` points to a service-account JSON file, and the corresponding service-account email must have read access to the sheet.
 
@@ -56,7 +56,7 @@ The Survivor page intentionally does not display the shared site header or hambu
 ## Project structure
 
 - Backend code lives under `xyz.raymoore.survivor`, organized by controller, service, and query DTO.
-- `SurvivorService` fetches the sheet snapshot; `SurvivorSheetParser` calculates weekly states, reveal rules, and sorting without retaining request data.
+- `SurvivorService` fetches the sheet snapshot; `SurvivorSheetParser` calculates weekly states, reveal rules, and sorting; `SurvivorCache` retains the latest parsed response and coordinates startup, scheduled, and forced refreshes.
 - `WeekView.picksHidden` describes visibility. `ContestantView.status` is `PENDING`, `SURVIVAL`, `ELIMINATION`, or `ELIMINATED`; `eliminationWeek` is nullable and represents final elimination as of that view.
 - Frontend code lives under `frontend/src/projects/survivor`.
 - This project has no persistence package, Flyway migration, or PostgreSQL schema.
