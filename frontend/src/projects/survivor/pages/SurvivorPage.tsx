@@ -40,7 +40,7 @@ export default function SurvivorPage() {
     <main className="survivor-page">
       <header className="survivor-heading">
         <h1>Survivor League</h1>
-        <p>Teams hidden until survivor picks submitted</p>
+        <p>Teams hidden until picks submitted</p>
       </header>
 
       {error && <p className="survivor-status survivor-error" role="alert">{error}</p>}
