@@ -281,6 +281,7 @@ The current global home page renders this content at `/`; it uses shared navigat
 ```html
 <h1>Hello World</h1>
 <p>This site is a constant work in progress...</p>
+<p>Are you looking for the <a href="/survivor">Survivor</a> page?</p>
 ```
 
 Keep this in `app/pages/HomePage.tsx`, rendered by `App.tsx`. Vite uses fixed port 5173 for development and 4173 for build preview. A Spring controller is unnecessary for this page; serving the built assets through Spring Boot remains a separate integration step. Shared navigation belongs in `app/components/`, and React Router owns page selection. A personal profile, project dashboard, and richer home-page content are later work.

@@ -72,7 +72,7 @@ npm run dev
 
 `npm ci` installs the exact dependencies recorded in `package-lock.json` into `node_modules/`. Run it on initial setup or after pulling dependency changes. Think of `package.json` as the frontend's build/dependency manifest, similar in purpose to Maven's `pom.xml`; its `scripts` section defines the `npm run ...` commands. Commit `package-lock.json`, but not `node_modules/` or generated `dist/` files. To intentionally change dependencies, use `npm install --save-exact <package>` (or add `--save-dev` for build tools) and commit the updated manifest and lockfile together.
 
-Open **http://localhost:5173/** in your browser. The page displays **Hello World** and **This site is a constant work in progress...**. It needs no Spring process, Docker, PostgreSQL, or `.env` configuration. Leave the terminal running while developing and use **Ctrl+C** to stop it. Run `npm run dev` again for subsequent sessions.
+Open **http://localhost:5173/** in your browser. The page displays **Hello World**, **This site is a constant work in progress...**, and a link to the Survivor page. It needs no Spring process, Docker, PostgreSQL, or `.env` configuration. Leave the terminal running while developing and use **Ctrl+C** to stop it. Run `npm run dev` again for subsequent sessions.
 
 **Vite** is the frontend development server and build tool. Saving a source file updates the page through React Fast Refresh, usually without a manual reload. The development port is fixed at **5173** with `strictPort: true`; if another process owns it, stop that process instead of looking for a silently changed port. The configuration lives in `frontend/vite.config.ts`. See [Vite's getting-started guide](https://vite.dev/guide/).
 
@@ -84,7 +84,7 @@ Open **http://localhost:5173/** in your browser. The page displays **Hello World
 | `src/main.tsx` | Starts React, mounts `App` into that element, and imports the CSS. |
 | `src/App.tsx` | Top-level component; selects the current page and renders shared navigation. |
 | `src/app/components/HamburgerMenu.tsx` | Shared hamburger button and navigation drawer. |
-| `src/app/pages/HomePage.tsx` | Global home page returning the heading and paragraph. Edit the text here. |
+| `src/app/pages/HomePage.tsx` | Global home page returning the heading, progress message, and Survivor link. Edit the text here. |
 | `src/projects/survivor/pages/SurvivorPage.tsx` | Survivor League week selector, result-colored picks, and elimination history. |
 | `src/projects/madisonsc/pages/RootPage.tsx` | Madison SC year-summary page with final cumulative ranks, records, and win percentages through each year's latest populated week. |
 | `src/projects/madisonsc/pages/contestants/ContestantPicksPage.tsx` | Contestant records grouped by all 32 NFL teams, all time, and recent competition years. |
