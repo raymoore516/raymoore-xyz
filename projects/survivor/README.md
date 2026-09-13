@@ -39,7 +39,7 @@ The Sheets format behavior is documented in [CellData / CellFormat](https://deve
 - In hidden weeks, sort eligible entrants without a submitted pick first, alphabetically by contestant name. Sort eligible entrants with submitted picks next, alphabetically by contestant name without using their hidden team codes or result statuses. Keep previously eliminated entrants last, ordered by elimination week descending and then contestant name ascending.
 - In revealed weeks, sort groups as survival, pending, this week's loss, then previously eliminated. Sort the first three groups by NFL team code ascending, then contestant name ascending (both case-insensitive). Use the original team code before mapping it to its display name.
 - Sort prior eliminations by elimination week descending, then alphabetically by name. For example, Week 2 eliminations Ray and Ryan appear above Week 1 elimination Jordan in the Week 3 table.
-- Keep the bold week dropdown, compact table text, and horizontal scrolling for narrow screens.
+- Keep the bold week dropdown and compact table text. At a 375-pixel viewport, long values such as `Arely Miramontes Rodriguez` and `Washington Commanders` must wrap within their columns without causing horizontal scrolling; retain horizontal overflow as a fallback for exceptional content.
 - The heading explains that selections are hidden until all eligible contestants have picked.
 
 ## Routes
@@ -71,3 +71,4 @@ The Survivor page intentionally does not display the shared site header or hambu
 - Missing eligible picks hide every team name in that week, regardless of result colors. A populated pick with a pending result does not block the reveal. Even a red blank for someone eligible at the start of the week continues to block that week's reveal, although it records an elimination for later weeks.
 - Unchecked entrants never appear or block a reveal. Empty weeks are omitted, while every included week lists all checked entrants.
 - Verify neutral and pale red/green fills, a blank pending selection, a loss with Buyback checked after Week 1, and desktop/mobile rendering.
+- At a 375 x 667 viewport, verify `Arely Miramontes Rodriguez` and `Washington Commanders` remain fully visible in the same row without horizontal scrolling.

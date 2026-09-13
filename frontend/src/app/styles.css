@@ -154,6 +154,13 @@ main {
   padding: 2rem 1.5rem;
 }
 
+.survivor-page-link,
+.survivor-page-link:visited {
+  color: #0969da;
+  font-weight: 700;
+  text-decoration: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .navigation-drawer {
     transition: none;

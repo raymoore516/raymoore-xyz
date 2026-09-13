@@ -63,6 +63,8 @@
 }
 
 .survivor-table-frame {
+  width: min(100%, 36rem);
+  justify-self: center;
   overflow-x: auto;
   border: 1px solid #d0d7de;
   border-radius: 0.625rem;
@@ -71,13 +73,14 @@
 
 .survivor-table-frame table {
   width: 100%;
+  table-layout: fixed;
   font-size: 0.875rem;
-  white-space: nowrap;
   border-collapse: collapse;
 }
 
 .survivor-table-frame th,
 .survivor-table-frame td {
+  width: 50%;
   padding: 0.5rem 1rem;
   text-align: left;
   border-bottom: 1px solid #d0d7de;
@@ -132,11 +135,6 @@
   border: 0;
 }
 
-.survivor-table-frame th:last-child,
-.survivor-table-frame td:last-child {
-  width: 45%;
-}
-
 .survivor-empty-pick {
   color: #8c959f;
 }
@@ -189,11 +187,31 @@
 
 @media (max-width: 32rem) {
   .survivor-page {
-    padding-inline: 1rem;
+    padding: 0.5rem;
+  }
+
+  .survivor-heading {
+    margin-bottom: 0.5rem;
+  }
+
+  .survivor-heading p {
+    margin-top: 0.125rem;
+  }
+
+  .survivor-picks {
+    gap: 0.5rem;
+  }
+
+  .survivor-week-picker {
+    padding-block: 0.375rem;
+  }
+
+  .survivor-table-frame table {
+    font-size: 0.8rem;
   }
 
   .survivor-table-frame th,
   .survivor-table-frame td {
-    padding-inline: 0.75rem;
+    padding: 0.375rem 0.5rem;
   }
 }

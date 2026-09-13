@@ -5,7 +5,7 @@ export default function HomePage() {
     <main>
       <h1>Hello World</h1>
       <p>This site is a constant work in progress...</p>
-      <p>Are you looking for the <Link to="/survivor">Survivor</Link> page?</p>
+      <p>Are you looking for the <Link className="survivor-page-link" to="/survivor">Survivor</Link> page?</p>
     </main>
   );
 }
