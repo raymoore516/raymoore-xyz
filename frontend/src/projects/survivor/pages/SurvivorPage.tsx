@@ -41,7 +41,7 @@ export default function SurvivorPage() {
     <main className="survivor-page">
       <header className="survivor-heading">
         <h1>Survivor League</h1>
-        <p>Teams are hidden until all survivors have submitted picks</p>
+        <p>Teams hidden until survivor picks submitted</p>
       </header>
 
       {isLoading && <p className="survivor-status" role="status">Loading spreadsheet…</p>}
