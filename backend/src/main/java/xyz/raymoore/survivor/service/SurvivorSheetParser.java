@@ -126,6 +126,9 @@ final class SurvivorSheetParser {
             })
             .thenComparingInt(contestant -> contestant.status() == PickStatus.ELIMINATED
                     ? -contestant.eliminationWeek() : 0)
+            // Picks still contain team codes here, before display-name mapping and redaction.
+            .thenComparing(contestant -> contestant.status() == PickStatus.ELIMINATED
+                    ? "" : contestant.pick(), String.CASE_INSENSITIVE_ORDER)
             .thenComparing(ContestantView::name, String.CASE_INSENSITIVE_ORDER)
             .thenComparing(ContestantView::name);
 
