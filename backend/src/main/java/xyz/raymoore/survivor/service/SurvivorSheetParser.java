@@ -52,7 +52,7 @@ final class SurvivorSheetParser {
         int entryColumn = requiredHeader(headers, "Entry");
         int buybackColumn = requiredHeader(headers, "Buyback");
         List<RowData> entrants = rows.stream().skip(1)
-                .filter(row -> checked(cell(row, entryColumn)))
+                .filter(row -> marked(cell(row, entryColumn)))
                 .filter(row -> !text(cell(row, nameColumn)).isBlank())
                 .toList();
         List<WeekView> weeks = new ArrayList<>();
@@ -77,7 +77,7 @@ final class SurvivorSheetParser {
                 picksHidden |= !alreadyEliminated && teamCode.isBlank();
 
                 if (status == PickStatus.ELIMINATION
-                        && !(week.number() == 1 && checked(cell(row, buybackColumn)))) {
+                        && !(week.number() == 1 && marked(cell(row, buybackColumn)))) {
                     eliminationWeek = week.number();
                     eliminatedIn.put(index, eliminationWeek);
                 }
@@ -270,10 +270,11 @@ final class SurvivorSheetParser {
         return row.getValues() == null || column >= row.getValues().size() ? null : row.getValues().get(column);
     }
 
-    private static boolean checked(CellData cell) {
-        return cell != null && ((cell.getEffectiveValue() != null
-                && Boolean.TRUE.equals(cell.getEffectiveValue().getBoolValue()))
-                || "TRUE".equalsIgnoreCase(text(cell)));
+    private static boolean marked(CellData cell) {
+        return switch (text(cell).toUpperCase(Locale.ROOT)) {
+            case "X", "Y", "YES" -> true;
+            default -> false;
+        };
     }
 
     private static String text(CellData cell) {
