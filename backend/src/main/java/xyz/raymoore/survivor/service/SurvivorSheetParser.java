@@ -135,10 +135,9 @@ final class SurvivorSheetParser {
     private static final Comparator<ContestantView> REVEALED_CONTESTANT_ORDER = Comparator
             .comparingInt((ContestantView contestant) -> switch (contestant.status()) {
                 case SURVIVAL -> 0;
-                case BUYBACK -> 1;
-                case PENDING -> 2;
-                case ELIMINATION -> 3;
-                case ELIMINATED -> 4;
+                case PENDING -> 1;
+                case BUYBACK, ELIMINATION -> 2;
+                case ELIMINATED -> 3;
             })
             .thenComparingInt(contestant -> contestant.status() == PickStatus.ELIMINATED
                     ? -contestant.eliminationWeek() : 0)
