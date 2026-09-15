@@ -66,7 +66,7 @@ public record SurvivorResponse(String spreadsheetTitle, List<WeekView> weeks) {
     }
 
     public enum PickStatus {
-        PENDING, SURVIVAL, ELIMINATION, ELIMINATED
+        PENDING, SURVIVAL, BUYBACK, ELIMINATION, ELIMINATED
     }
 
     public record ContestantView(

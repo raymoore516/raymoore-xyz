@@ -76,10 +76,13 @@ final class SurvivorSheetParser {
                 // A Week 1 buyback keeps an entrant eligible; result colors do not gate reveal.
                 picksHidden |= !alreadyEliminated && teamCode.isBlank();
 
-                if (status == PickStatus.ELIMINATION
-                        && !(week.number() == 1 && marked(cell(row, buybackColumn)))) {
-                    eliminationWeek = week.number();
-                    eliminatedIn.put(index, eliminationWeek);
+                if (status == PickStatus.ELIMINATION) {
+                    if (week.number() == 1 && marked(cell(row, buybackColumn))) {
+                        status = PickStatus.BUYBACK;
+                    } else {
+                        eliminationWeek = week.number();
+                        eliminatedIn.put(index, eliminationWeek);
+                    }
                 }
 
                 contestants.add(ContestantView.builder()
@@ -132,9 +135,10 @@ final class SurvivorSheetParser {
     private static final Comparator<ContestantView> REVEALED_CONTESTANT_ORDER = Comparator
             .comparingInt((ContestantView contestant) -> switch (contestant.status()) {
                 case SURVIVAL -> 0;
-                case PENDING -> 1;
-                case ELIMINATION -> 2;
-                case ELIMINATED -> 3;
+                case BUYBACK -> 1;
+                case PENDING -> 2;
+                case ELIMINATION -> 3;
+                case ELIMINATED -> 4;
             })
             .thenComparingInt(contestant -> contestant.status() == PickStatus.ELIMINATED
                     ? -contestant.eliminationWeek() : 0)

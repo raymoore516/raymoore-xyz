@@ -23,10 +23,10 @@ The backend reads both worksheets in one Google Sheets request, retrieving value
 - A green cell means survival; a red cell means a loss. An unformatted, white, gray, or otherwise neutral cell means pending, including a blank cell for a still-eligible entrant.
 - Use the cell's effective background color, which includes conditional formatting. Resolve theme colors through the spreadsheet theme. On the Sheets 0–1 RGB scale, green must exceed both red and blue by at least `0.05` for survival; red must exceed both green and blue by at least `0.05` for a loss. Other colors remain pending. This deliberately allows different shades while ignoring near-neutral tints.
 - Process all `Week N` columns in numeric order to determine elimination history. A red blank still records a loss, even if the whole column is empty and omitted from the dropdown. Pending cells do not eliminate contestants automatically.
-- The first loss eliminates an entrant, except a Week 1 loss with `Buyback = X`. That exception permits continued participation, but the next loss is final. A first loss in Week 2 or later cannot use a buyback.
+- The first loss eliminates an entrant, except a Week 1 loss with an affirmative `Buyback` value. That exception permits continued participation, but the next loss is final. A first loss in Week 2 or later cannot use a buyback.
 - A week hides **all** its team names if any entrant eligible at the start of that week has a blank pick (including whitespace-only cells). Reveal as soon as every eligible entrant has entered a pick, even when result colors are still pending. Previously eliminated entrants do not block the reveal, regardless of their later blank cells or colors. A Week 1 buyback keeps the entrant eligible, so their missing pick must still block the reveal. Each week is evaluated independently; visibility does not depend on today's date or whether the week is the latest one.
 - Hidden picks are redacted in the backend response. The frontend receives `picksHidden` and `selectionExists`, displaying a green SVG check circle for a submitted selection and a yellow SVG warning triangle with a dark outline and exclamation point for a missing selection. The checkmark and exclamation point share the same stroke width. The missing-pick indicator has an accessible label and tooltip: `Pick not yet submitted for this week`. Previously eliminated entrants retain their elimination label. Row result statuses remain visible.
-- On the actual loss week, show the entrant's pick (or check when hidden) in a red row. This also applies to a Week 1 loss forgiven by buyback.
+- On the actual loss week, show the entrant's pick (or check when hidden) in a red row. A Week 1 loss forgiven by buyback is yellow instead.
 - On subsequent weeks, show `- Eliminated Week N -` without emojis, where `N` is the final elimination week. Use a light-gray (`#EEE`) row with dark-gray (`#555`) names and lighter-gray (`#6B6B6B`) elimination labels. Ignore later picks for eliminated entrants. Each weekly DTO contains only elimination history through that week, never a future elimination.
 
 The Sheets format behavior is documented in [CellData / CellFormat](https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/cells).
@@ -34,10 +34,10 @@ The Sheets format behavior is documented in [CellData / CellFormat](https://deve
 ## Table presentation
 
 - Headers are `Name` and `Week N Pick`.
-- Row backgrounds: white for pending, green for survival, red for this week's loss, and light gray for prior elimination. Prior-elimination rows use non-italic text with regular-weight dark-gray names and lighter-gray elimination labels. Other contestant names remain bold. Accessible text also identifies result status.
+- Row backgrounds: white for pending, green for survival, yellow for a Week 1 loss forgiven by buyback, red for this week's final loss, and light gray for prior elimination. Prior-elimination rows use non-italic text with regular-weight dark-gray names and lighter-gray elimination labels. Other contestant names remain bold. Accessible text also identifies result status.
 - In hidden weeks, eligible entrants without a submitted pick use a very pale yellow (`#FFFBEA`) row background alongside the caution indicator. This overrides the result background only for those unsubmitted rows; prior eliminations retain their gray background.
 - In hidden weeks, sort eligible entrants without a submitted pick first, alphabetically by contestant name. Sort eligible entrants with submitted picks next, alphabetically by contestant name without using their hidden team codes or result statuses. Keep previously eliminated entrants last, ordered by elimination week descending and then contestant name ascending.
-- In revealed weeks, sort groups as survival, pending, this week's loss, then previously eliminated. Sort the first three groups by NFL team code ascending, then contestant name ascending (both case-insensitive). Use the original team code before mapping it to its display name.
+- In revealed weeks, sort groups as survival, buyback, pending, this week's final loss, then previously eliminated. Sort the first four groups by NFL team code ascending, then contestant name ascending (both case-insensitive). Use the original team code before mapping it to its display name.
 - Sort prior eliminations by elimination week descending, then alphabetically by name. For example, Week 2 eliminations Ray and Ryan appear above Week 1 elimination Jordan in the Week 3 table.
 - Keep the bold week dropdown and compact table text. On mobile, keep the pick column wide enough to prevent its content from wrapping and let the contestant-name column use the remaining width, wrapping long names as needed. Retain horizontal overflow as a fallback for exceptional content.
 - The heading explains that selections are hidden until all eligible contestants have picked.
@@ -57,16 +57,16 @@ The Survivor page intentionally does not display the shared site header or hambu
 
 - Backend code lives under `xyz.raymoore.survivor`, organized by controller, service, and query DTO.
 - `SurvivorService` fetches the sheet snapshot; `SurvivorSheetParser` calculates weekly states, reveal rules, and sorting; `SurvivorCache` retains the latest parsed response and coordinates startup, scheduled, and forced refreshes.
-- `WeekView.picksHidden` describes visibility. `ContestantView.status` is `PENDING`, `SURVIVAL`, `ELIMINATION`, or `ELIMINATED`; `eliminationWeek` is nullable and represents final elimination as of that view.
+- `WeekView.picksHidden` describes visibility. `ContestantView.status` is `PENDING`, `SURVIVAL`, `BUYBACK`, `ELIMINATION`, or `ELIMINATED`; `eliminationWeek` is nullable and represents final elimination as of that view.
 - Frontend code lives under `frontend/src/projects/survivor`.
 - This project has no persistence package, Flyway migration, or PostgreSQL schema.
 
 ## Manual acceptance checks
 
-- With the sandbox's Week 1 losses, Jordan (no buyback) enters the graveyard in Week 2; Ray and Tyler (`Buyback = X`) continue.
+- With the sandbox's Week 1 losses, Jordan (no buyback) has a red row and enters the graveyard in Week 2; Ray and Tyler (`Buyback = X`) have yellow rows and continue.
 - Ray and Ryan's Week 2 losses place them above Jordan in Week 3's graveyard. Their empty Week 3 cells do not hide Arely and Tyler's completed Week 3 picks.
 - In a hidden week, verify yellow missing-pick rows appear first alphabetically, followed by all submitted-pick rows alphabetically even when their hidden team codes or result colors differ. Gray rows remain last and retain their elimination-week-descending, contestant-name-ascending order.
-- Within each of the survival, pending, and this week's loss groups, verify team-code ordering and alphabetical contestant-name ordering for matching codes. Gray rows remain ordered by elimination week descending, then contestant name.
+- Verify the revealed-week group order is green, yellow, white, red, then gray. Within each of the first four groups, verify team-code ordering and alphabetical contestant-name ordering for matching codes. Gray rows remain ordered by elimination week descending, then contestant name.
 - If Ray loses Week 1 but buys back, his missing Week 2 pick hides all Week 2 team names. Jordan's Week 1 elimination without buyback does not block the reveal. Entering Ray's pick reveals the week once every other eligible entrant has picked, without requiring red/green result colors.
 - Missing eligible picks hide every team name in that week, regardless of result colors. A populated pick with a pending result does not block the reveal. Even a red blank for someone eligible at the start of the week continues to block that week's reveal, although it records an elimination for later weeks.
 - Entrants with a blank `Entry` never appear or block a reveal. Empty weeks are omitted, while every included week lists all entrants marked with `X`.

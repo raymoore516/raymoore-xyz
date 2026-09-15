@@ -7,6 +7,7 @@ import '../styles.css';
 const statusLabels: Record<SurvivorPickStatus, string> = {
   PENDING: 'Pending result',
   SURVIVAL: 'Survived this week',
+  BUYBACK: 'Lost this week; buyback applied',
   ELIMINATION: 'Lost this week',
   ELIMINATED: 'Previously eliminated',
 };

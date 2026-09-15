@@ -1,4 +1,4 @@
-export type SurvivorPickStatus = 'PENDING' | 'SURVIVAL' | 'ELIMINATION' | 'ELIMINATED';
+export type SurvivorPickStatus = 'PENDING' | 'SURVIVAL' | 'BUYBACK' | 'ELIMINATION' | 'ELIMINATED';
 
 export interface SurvivorContestant {
   name: string;
