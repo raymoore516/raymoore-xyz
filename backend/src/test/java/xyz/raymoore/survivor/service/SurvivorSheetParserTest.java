@@ -15,6 +15,7 @@ import com.google.api.services.sheets.v4.model.SpreadsheetProperties;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import xyz.raymoore.madisonsc.category.Team;
 import xyz.raymoore.survivor.dto.query.SurvivorResponse;
 import xyz.raymoore.survivor.dto.query.SurvivorResponse.ContestantView;
 import xyz.raymoore.survivor.dto.query.SurvivorResponse.PickStatus;
@@ -25,40 +26,48 @@ class SurvivorSheetParserTest {
     private static final Color RED = new Color().setRed(1f);
 
     @Test
-    void marksAffirmativeWeekOneBuybacksAndSortsThemAfterSurvivals() {
+    void marksAffirmativeWeekOneBuybacksAndSortsByStatusTeamAndName() {
         Spreadsheet spreadsheet = spreadsheet(
                 List.of(
                         row(cell("Name"), cell("Entry"), cell("Buyback"), cell("Week 1")),
-                        row(cell("Green"), cell("X"), cell(""), resultCell("ZZZ", GREEN)),
-                        row(cell("Charlie"), cell("X"), cell("X"), resultCell("BBB", RED)),
-                        row(cell("Alice"), cell("X"), cell("Y"), resultCell("AAA", RED)),
-                        row(cell("Bob"), cell("X"), cell("YES"), resultCell("AAA", RED)),
-                        row(cell("None"), cell("X"), cell(""), cell("AAA")),
-                        row(cell("Red"), cell("X"), cell(""), resultCell("AAA", RED))
+                        row(cell("Alice"), cell("X"), cell(""), resultCell(Team.CLE, GREEN)),
+                        row(cell("Bob"), cell("X"), cell(""), resultCell(Team.BAL, GREEN)),
+                        row(cell("Charlie"), cell("X"), cell(""), cell(Team.PIT)),
+                        row(cell("Derek"), cell("X"), cell(""), cell(Team.CHI)),
+                        row(cell("Evan"), cell("X"), cell("X"), resultCell(Team.GB, RED)),
+                        row(cell("Frank"), cell("X"), cell("Y"), resultCell(Team.CIN, RED)),
+                        row(cell("George"), cell("X"), cell("YES"), resultCell(Team.CIN, RED)),
+                        row(cell("Helga"), cell("X"), cell(""), resultCell(Team.BAL, RED)),
+                        row(cell("Isaac"), cell("X"), cell(""), resultCell(Team.DET, RED)),
+                        row(cell("John"), cell("X"), cell(""), resultCell(Team.MIN, RED))
                 ),
-                List.of("AAA", "BBB", "ZZZ")
+                List.of(Team.BAL, Team.CLE, Team.CIN, Team.PIT, Team.CHI, Team.DET, Team.GB, Team.MIN)
         );
 
         List<ContestantView> contestants = SurvivorSheetParser.parse(spreadsheet).weeks().getFirst().contestants();
 
         assertEquals(
-                List.of("Green", "Alice", "Bob", "Charlie", "None", "Red"),
+                List.of("Bob", "Alice", "Derek", "Charlie", "Helga", "Frank", "George", "Isaac", "Evan", "John"),
                 contestants.stream().map(ContestantView::name).toList()
         );
         assertEquals(
                 List.of(
                         PickStatus.SURVIVAL,
-                        PickStatus.BUYBACK,
-                        PickStatus.BUYBACK,
-                        PickStatus.BUYBACK,
+                        PickStatus.SURVIVAL,
                         PickStatus.PENDING,
+                        PickStatus.PENDING,
+                        PickStatus.ELIMINATION,
+                        PickStatus.BUYBACK,
+                        PickStatus.BUYBACK,
+                        PickStatus.ELIMINATION,
+                        PickStatus.BUYBACK,
                         PickStatus.ELIMINATION
                 ),
                 contestants.stream().map(ContestantView::status).toList()
         );
-        assertNull(contestants.get(1).eliminationWeek());
-        assertNull(contestants.get(2).eliminationWeek());
-        assertNull(contestants.get(3).eliminationWeek());
+        assertNull(contestants.get(5).eliminationWeek());
+        assertNull(contestants.get(6).eliminationWeek());
+        assertNull(contestants.get(8).eliminationWeek());
     }
 
     @Test
@@ -66,9 +75,10 @@ class SurvivorSheetParserTest {
         Spreadsheet spreadsheet = spreadsheet(
                 List.of(
                         row(cell("Name"), cell("Entry"), cell("Buyback"), cell("Week 1"), cell("Week 2")),
-                        row(cell("Ray"), cell("X"), cell("X"), resultCell("AAA", RED), resultCell("BBB", RED))
+                        row(cell("Alice"), cell("X"), cell("X"),
+                                resultCell(Team.BAL, RED), resultCell(Team.CLE, RED))
                 ),
-                List.of("AAA", "BBB")
+                List.of(Team.BAL, Team.CLE)
         );
 
         SurvivorResponse response = SurvivorSheetParser.parse(spreadsheet);
@@ -81,10 +91,10 @@ class SurvivorSheetParserTest {
         assertEquals(2, weekTwo.eliminationWeek());
     }
 
-    private static Spreadsheet spreadsheet(List<RowData> standings, List<String> teamCodes) {
+    private static Spreadsheet spreadsheet(List<RowData> standings, List<Team> teamsByCode) {
         List<RowData> teams = new java.util.ArrayList<>();
         teams.add(row(cell("Team"), cell("Name")));
-        teamCodes.forEach(code -> teams.add(row(cell(code), cell("Team " + code))));
+        teamsByCode.forEach(team -> teams.add(row(cell(team), cell("Team " + team.name()))));
         return new Spreadsheet()
                 .setProperties(new SpreadsheetProperties().setTitle("Survivor Test"))
                 .setSheets(List.of(sheet("Standings", standings), sheet("Teams", teams)));
@@ -104,7 +114,11 @@ class SurvivorSheetParserTest {
         return new CellData().setFormattedValue(value);
     }
 
-    private static CellData resultCell(String value, Color color) {
-        return cell(value).setEffectiveFormat(new CellFormat().setBackgroundColor(color));
+    private static CellData cell(Team team) {
+        return cell(team.name());
+    }
+
+    private static CellData resultCell(Team team, Color color) {
+        return cell(team).setEffectiveFormat(new CellFormat().setBackgroundColor(color));
     }
 }
